@@ -3,18 +3,16 @@ package com.example.musicapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import com.example.musicapp.ui.theme.MusicAppTheme
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,16 +25,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MyApp() {
     var selectedTab by remember { mutableStateOf(0) }
+    var isSheetVisible by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Music App") },
                 actions = {
-                    IconButton(onClick = { /* Ничего не делает */ }) {
+                    IconButton(onClick = { isSheetVisible = true }) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "Account")
                     }
                 },
@@ -51,7 +51,38 @@ fun MyApp() {
         },
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
+        // Основной контент экрана
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            // Основной контент здесь
+        }
+    }
 
+    // Модальное окно
+    if (isSheetVisible) {
+        ModalBottomSheetLayout(
+            sheetContent = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.5f) // Установите высоту модального окна
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        IconButton(
+                            onClick = { isSheetVisible = false },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Icon(Icons.Filled.Close, contentDescription = "Close")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("This is a modal bottom sheet", style = MaterialTheme.typography.h6)
+                        // Добавьте другие элементы сюда
+                    }
+                }
+            },
+            sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Expanded),
+            content = {}
+        )
     }
 }
 

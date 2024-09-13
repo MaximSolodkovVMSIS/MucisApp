@@ -11,6 +11,7 @@ composeBom = "2024.04.01"
 composeMaterial = "1.4.3"
 navigationCompose = "2.8.0"
 navigationRuntimeKtx = "2.8.0"
+storage = "1.4.2"
 
 
 
@@ -32,6 +33,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-material = { group = "androidx.compose.material", name = "material", version.ref = "composeMaterial" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
+androidx-storage = { group = "androidx.test.services", name = "storage", version.ref = "storage" }
 
 
 
