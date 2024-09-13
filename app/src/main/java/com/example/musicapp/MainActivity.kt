@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,7 +12,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.example.musicapp.ui.theme.MusicAppTheme
 
@@ -37,7 +37,7 @@ fun MyApp() {
             TopAppBar(
                 title = { Text("Music App") },
                 actions = {
-                    IconButton(onClick = { isSheetVisible = true } ){
+                    IconButton(onClick = { isSheetVisible = true }) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "Account")
                     }
                 },
@@ -54,7 +54,6 @@ fun MyApp() {
     ) { innerPadding ->
         // 3 button on bottom
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            // main content
         }
     }
 
@@ -65,15 +64,21 @@ fun MyApp() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.9f) // high of modal sheet
+                        .fillMaxHeight(0.9f) // height of modal sheet
                         .padding(16.dp)
                 ) {
                     Column {
-                        IconButton(
-                            onClick = { isSheetVisible = false },
-                            modifier = Modifier.align(Alignment.End)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            Icon(Icons.Filled.Close, contentDescription = "Close")
+                            IconButton(
+                                onClick = { isSheetVisible = false },
+                                modifier = Modifier.align(Alignment.TopStart)
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = "Close")
+                            }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("This is a modal bottom sheet", style = MaterialTheme.typography.h6)
@@ -86,6 +91,7 @@ fun MyApp() {
         )
     }
 }
+
 
 @Composable
 fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
