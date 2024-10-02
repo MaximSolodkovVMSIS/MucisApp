@@ -83,23 +83,23 @@
 ## 2.2 Интерфейс пользователя
 Окно входа в приложение.  
 
-![Окно входа в приложение](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/mainwindow.JPG)  
+![Окно входа в приложение](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Requirements/Mockups/mainwindow.JPG)  
 
 Окно регистрации или авторизации. 
 
-![Окно регистрации или авторизации](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/regwindow.JPG)
+![Окно регистрации или авторизации](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Requirements/Mockups/regwindow.JPG)
 
 Окно поиска mp3 файлов в проводнике
 
-![Кнопка поиска mp3 файлов в проводнике](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/searchbut.JPG) 
+![Кнопка поиска mp3 файлов в проводнике](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Requirements/Mockups/searchbut.JPG) 
 
 Окно вашей музыки. 
 
-![Окно вашей музыки](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/youmusicbut.JPG)      
+![Окно вашей музыки](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Requirements/Mockups/youmusicbut.JPG)      
 
 Окно плеера.
 
-![Окно плеера](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/playerbut.JPG)    
+![Окно плеера](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Requirements/Mockups/playerbut.JPG)    
 
 <a name="user_specifications"/>
 
