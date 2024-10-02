@@ -91,15 +91,15 @@
 
 Окно поиска mp3 файлов в проводнике
 
-![Кнопка поиска mp3 файлов в проводнике](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/searchbut.PNG) 
+![Кнопка поиска mp3 файлов в проводнике](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/searchbut.JPG) 
 
 Окно вашей музыки. 
 
-![Окно вашей музыки](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/youmusicbut.PNG)      
+![Окно вашей музыки](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/youmusicbut.JPG)      
 
 Окно плеера.
 
-![Окно плеера](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/playerbut.PNG)    
+![Окно плеера](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Mockups/playerbut.JPG)    
 
 <a name="user_specifications"/>
 
