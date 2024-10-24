@@ -30,67 +30,33 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     var selectedTab by remember { mutableStateOf(0) }
-    var isSheetVisible by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Music App") },
                 actions = {
-                    IconButton(onClick = { isSheetVisible = true }) {
+                    IconButton(onClick = { /* Логика для модального окна */ }) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "Account")
                     }
-                },
-                backgroundColor = MaterialTheme.colors.primary
+                }
             )
         },
         bottomBar = {
-            BottomNavigationBar(
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
+            BottomNavigationBar(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
         },
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
-        // 3 button on bottom
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+        Box(modifier = Modifier.padding(innerPadding)) {
+            when (selectedTab) {
+                0 -> SearchScreen()
+                1 -> MyMusicScreen()
+                2 -> PlayerScreen()
+            }
         }
     }
-
-    // modal sheet
-    if (isSheetVisible) {
-        ModalBottomSheetLayout(
-            sheetContent = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.9f) // height of modal sheet
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            IconButton(
-                                onClick = { isSheetVisible = false },
-                                modifier = Modifier.align(Alignment.TopStart)
-                            ) {
-                                Icon(Icons.Filled.Close, contentDescription = "Close")
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("This is a modal bottom sheet", style = MaterialTheme.typography.h6)
-                        // add other elements
-                    }
-                }
-            },
-            sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Expanded),
-            content = {}
-        )
-    }
 }
+
 
 
 @Composable
