@@ -1,3 +1,5 @@
+# Диаграмма состояний
+
 # Содержание
 1. [Авторизация](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Diagrams/img/authoState.png)
 2. [Поиск музыки](https://github.com/MaximSolodkovVMSIS/MucisApp/blob/master/Diagrams/img/SearchState.png)
