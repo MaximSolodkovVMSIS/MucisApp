@@ -21,6 +21,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.media.MediaPlayer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
 fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
@@ -94,16 +102,38 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     }
 }
 
+fun formatTime(milliseconds: Int): String {
+    val minutes = (milliseconds / 1000) / 60
+    val seconds = (milliseconds / 1000) % 60
+    return "%d:%02d".format(minutes, seconds)
+}
 
 // Диалог для отображения информации о файле
 @Composable
 fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () -> Unit) {
     var title by remember { mutableStateOf(file.title) }
     var artist by remember { mutableStateOf(file.artist ?: "Неизвестно") }
+    var isPlaying by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val mediaPlayer = remember { MediaPlayer.create(context, file.uri) }
+    var currentProgress by remember { mutableStateOf(0) }
+    val duration = mediaPlayer.duration
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            coroutineScope.launch {
+                while (isPlaying && mediaPlayer.isPlaying) {
+                    currentProgress = mediaPlayer.currentPosition
+                    delay(1000)
+                }
+            }
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            modifier = Modifier.size(300.dp),
+            modifier = Modifier.size(width = 300.dp, height = 350.dp),
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colors.background,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -130,14 +160,54 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
                     onValueChange = { artist = it },
                     label = { Text("Исполнитель") }
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Проигрыватель
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(onClick = {
+                        if (isPlaying) {
+                            mediaPlayer.pause()
+                        } else {
+                            mediaPlayer.start()
+                        }
+                        isPlaying = !isPlaying
+                    }) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play"
+                        )
+                    }
+
+                    // Полоса прогресса
+                    Slider(
+                        value = currentProgress.toFloat(),
+                        onValueChange = {
+                            currentProgress = it.toInt()
+                            mediaPlayer.seekTo(currentProgress)
+                        },
+                        valueRange = 0f..duration.toFloat(),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Text(text = "${formatTime(currentProgress)}/${formatTime(duration)}",
+                        modifier = Modifier.padding(start = 8.dp))
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = onDismiss) {
+                    Button(onClick = {
+                        mediaPlayer.release()
+                        onDismiss()
+                    }) {
                         Text("Закрыть")
                     }
                     Button(onClick = {
-                        onAdd(file.copy(title = title, artist = artist)) // Добавляем с новыми данными
+                        mediaPlayer.release()
+                        onAdd(file.copy(title = title, artist = artist))
                     }) {
                         Text("Добавить")
                     }
@@ -146,6 +216,7 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
         }
     }
 }
+
 
 
 // Модель для представления музыкального файла
