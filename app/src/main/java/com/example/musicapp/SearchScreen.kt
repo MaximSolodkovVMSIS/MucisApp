@@ -23,11 +23,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun SearchScreen() {
+fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     val context = LocalContext.current
     var permissionGranted by remember { mutableStateOf(false) }
     var musicFiles by remember { mutableStateOf(emptyList<MusicFile>()) }
-    var selectedFile by remember { mutableStateOf<MusicFile?>(null) }  // для хранения выбранного файла
+    var selectedFile by remember { mutableStateOf<MusicFile?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -79,9 +79,7 @@ fun SearchScreen() {
             } else {
                 Text(text = "No MP3 files found", modifier = Modifier.fillMaxWidth())
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
         } else {
             Text(text = "Permission not granted", modifier = Modifier.fillMaxWidth())
         }
@@ -89,24 +87,26 @@ fun SearchScreen() {
 
     // Диалог с информацией о файле
     selectedFile?.let { file ->
-        FileInfoDialog(file) {
-            selectedFile = null  // Закрываем диалог при нажатии на кнопку "Закрыть"
-        }
+        FileInfoDialog(file, onAdd = {
+            addToFavorites(it) // Добавляем в избранное
+            selectedFile = null
+        }, onDismiss = { selectedFile = null })
     }
 }
 
+
 // Диалог для отображения информации о файле
 @Composable
-fun FileInfoDialog(file: MusicFile, onDismiss: () -> Unit) {
+fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () -> Unit) {
     var title by remember { mutableStateOf(file.title) }
     var artist by remember { mutableStateOf(file.artist ?: "Неизвестно") }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            modifier = Modifier.size(300.dp),  // размер окна 300x300 dp
+            modifier = Modifier.size(300.dp),
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colors.background,
-            border = BorderStroke(2.dp, MaterialTheme.colors.primary)  // обводка окна
+            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
         ) {
             Column(
                 modifier = Modifier
@@ -118,7 +118,6 @@ fun FileInfoDialog(file: MusicFile, onDismiss: () -> Unit) {
                 Text(text = "Редактировать файл", style = MaterialTheme.typography.h6)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Поле для редактирования названия
                 TextField(
                     value = title,
                     onValueChange = { title = it },
@@ -126,7 +125,6 @@ fun FileInfoDialog(file: MusicFile, onDismiss: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Поле для редактирования исполнителя
                 TextField(
                     value = artist,
                     onValueChange = { artist = it },
@@ -134,12 +132,13 @@ fun FileInfoDialog(file: MusicFile, onDismiss: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Кнопки "Закрыть" и "Добавить"
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = onDismiss) {
                         Text("Закрыть")
                     }
-                    Button(onClick = { /* Действие для кнопки "Добавить" */ }) {
+                    Button(onClick = {
+                        onAdd(file.copy(title = title, artist = artist)) // Добавляем с новыми данными
+                    }) {
                         Text("Добавить")
                     }
                 }
@@ -147,6 +146,7 @@ fun FileInfoDialog(file: MusicFile, onDismiss: () -> Unit) {
         }
     }
 }
+
 
 // Модель для представления музыкального файла
 data class MusicFile(val title: String, val uri: Uri, val artist: String? = null)

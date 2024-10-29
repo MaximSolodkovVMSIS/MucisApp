@@ -30,7 +30,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     var selectedTab by remember { mutableStateOf(0) }
-
+    val favoriteSongs = remember { mutableStateListOf<MusicFile>() } // Список избранных песен
+    val addToFavorites: (MusicFile) -> Unit = { file ->
+        if (file !in favoriteSongs) favoriteSongs.add(file)
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,15 +52,13 @@ fun MyApp() {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
-                0 -> SearchScreen()
-                1 -> MyMusicScreen()
+                0 -> SearchScreen(addToFavorites = { favoriteSongs.add(it) }) // Передаём функцию добавления
+                1 -> MyMusicScreen(favoriteSongs) // Передаём список в MyMusicScreen
                 2 -> PlayerScreen()
             }
         }
     }
 }
-
-
 
 @Composable
 fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
