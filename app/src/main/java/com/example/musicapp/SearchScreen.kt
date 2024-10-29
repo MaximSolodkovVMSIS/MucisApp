@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,8 +28,6 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
 fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
@@ -116,7 +115,7 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
     var isPlaying by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val mediaPlayer = remember { MediaPlayer.create(context, file.uri) }
-    var currentProgress by remember { mutableStateOf(0) }
+    var currentProgress by remember { mutableIntStateOf(0) }
     val duration = mediaPlayer.duration
     val coroutineScope = rememberCoroutineScope()
 

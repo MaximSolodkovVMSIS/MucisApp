@@ -11,8 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
 import com.example.musicapp.ui.theme.MusicAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,14 +24,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MyApp() {
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
     val favoriteSongs = remember { mutableStateListOf<MusicFile>() } // Список избранных песен
-    val addToFavorites: (MusicFile) -> Unit = { file ->
-        if (file !in favoriteSongs) favoriteSongs.add(file)
-    }
+
     Scaffold(
         topBar = {
             TopAppBar(
