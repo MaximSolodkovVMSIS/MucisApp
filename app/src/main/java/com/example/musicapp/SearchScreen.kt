@@ -216,12 +216,6 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
     }
 }
 
-
-
-// Модель для представления музыкального файла
-data class MusicFile(val title: String, val uri: Uri, val artist: String? = null)
-
-// Функция для получения списка mp3-файлов
 suspend fun getMusicFiles(context: Context): List<MusicFile> {
     return withContext(Dispatchers.IO) {
         val musicFiles = mutableListOf<MusicFile>()
@@ -248,7 +242,8 @@ suspend fun getMusicFiles(context: Context): List<MusicFile> {
                 val contentUri = Uri.withAppendedPath(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id.toString()
                 )
-                musicFiles.add(MusicFile(title, contentUri, artist))
+                // Обратите внимание на порядок аргументов:
+                musicFiles.add(MusicFile(title, artist, contentUri))
             }
         }
         musicFiles

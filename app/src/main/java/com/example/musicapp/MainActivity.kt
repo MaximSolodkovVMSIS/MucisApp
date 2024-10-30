@@ -1,10 +1,12 @@
 package com.example.musicapp
 
+import android.content.Context
+import android.media.browse.MediaBrowser
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -12,22 +14,70 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.example.musicapp.ui.theme.MusicAppTheme
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class MainActivity : ComponentActivity() {
+
+    private val favoriteSongs = mutableStateListOf<MusicFile>()
+    private val gson = Gson()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        loadFavorites()
+
         setContent {
             MusicAppTheme {
-                MyApp()
+                MyApp(favoriteSongs, ::addToFavorites, ::isFavorite)
             }
+        }
+    }
+
+    private fun addToFavorites(musicFile: MusicFile) {
+        if (!favoriteSongs.contains(musicFile)) {
+            favoriteSongs.add(musicFile)
+            saveFavorites()
+        }
+    }
+
+    private fun isFavorite(musicFile: MusicFile): Boolean {
+        return favoriteSongs.contains(musicFile)
+    }
+
+    private fun saveFavorites() {
+        val sharedPreferences = getSharedPreferences("music_app_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        val serializableList = favoriteSongs.map { SerializableMusicFile(it.title, it.artist, it.uri.toString()) }
+        val json = gson.toJson(serializableList)
+        editor.putString("favorite_songs", json)
+        editor.apply()
+    }
+
+    private fun loadFavorites() {
+        val sharedPreferences = getSharedPreferences("music_app_prefs", Context.MODE_PRIVATE)
+        val json = sharedPreferences.getString("favorite_songs", null)
+
+        if (json != null) {
+            val type = object : TypeToken<List<SerializableMusicFile>>() {}.type
+            val serializableList: List<SerializableMusicFile> = gson.fromJson(json, type)
+
+            // Преобразуем SerializableMusicFile обратно в MusicFile
+            val musicFiles = serializableList.map { MusicFile(it.title, it.artist, Uri.parse(it.uriString)) }
+
+            favoriteSongs.clear()
+            favoriteSongs.addAll(musicFiles)
         }
     }
 }
 
 @Composable
-fun MyApp() {
+fun MyApp(
+    favoriteSongs: List<MusicFile>,
+    addToFavorites: (MusicFile) -> Unit,
+    isFavorite: (MusicFile) -> Boolean
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val favoriteSongs = remember { mutableStateListOf<MusicFile>() } // Список избранных песен
 
     Scaffold(
         topBar = {
@@ -47,8 +97,8 @@ fun MyApp() {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
-                0 -> SearchScreen(addToFavorites = { favoriteSongs.add(it) }) // Передаём функцию добавления
-                1 -> MyMusicScreen(favoriteSongs) // Передаём список в MyMusicScreen
+                0 -> SearchScreen(addToFavorites = addToFavorites) // Передаём функцию добавления
+                1 -> MyMusicScreen(favoriteSongs) // Передаём список и проверку в MyMusicScreen
                 2 -> PlayerScreen()
             }
         }
@@ -82,7 +132,16 @@ fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
+    val dummyFavorites = listOf(
+        MusicFile("Song 1", "Artist 1", Uri.parse("uri1")),
+        MusicFile("Song 2", "Artist 2", Uri.parse("uri2"))
+    )
     MusicAppTheme {
-        MyApp()
+        MyApp(
+            favoriteSongs = dummyFavorites,
+            addToFavorites = {},
+            isFavorite = { false }
+        )
     }
 }
+
