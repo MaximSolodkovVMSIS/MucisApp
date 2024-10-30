@@ -1,7 +1,7 @@
 package com.example.musicapp
 
 import android.content.Context
-import android.media.browse.MediaBrowser
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
 
     private val favoriteSongs = mutableStateListOf<MusicFile>()
     private val gson = Gson()
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MusicAppTheme {
-                MyApp(favoriteSongs, ::addToFavorites, ::isFavorite)
+                MyApp(favoriteSongs, ::addToFavorites, ::isFavorite, ::playSong)
             }
         }
     }
@@ -69,13 +70,28 @@ class MainActivity : ComponentActivity() {
             favoriteSongs.addAll(musicFiles)
         }
     }
+
+    private fun playSong(uri: Uri) {
+        mediaPlayer?.release() // Освобождаем предыдущий MediaPlayer, если он есть
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(this@MainActivity, uri)
+            prepare()
+            start()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release() // Освобождаем ресурсы MediaPlayer
+    }
 }
 
 @Composable
 fun MyApp(
     favoriteSongs: List<MusicFile>,
     addToFavorites: (MusicFile) -> Unit,
-    isFavorite: (MusicFile) -> Boolean
+    isFavorite: (MusicFile) -> Boolean,
+    playSong: (Uri) -> Unit // Передаем функцию воспроизведения
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -97,8 +113,8 @@ fun MyApp(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
-                0 -> SearchScreen(addToFavorites = addToFavorites) // Передаём функцию добавления
-                1 -> MyMusicScreen(favoriteSongs) // Передаём список и проверку в MyMusicScreen
+                0 -> SearchScreen(addToFavorites = addToFavorites)
+                1 -> MyMusicScreen(favoriteSongs, playSong) // Передаем функцию воспроизведения
                 2 -> PlayerScreen()
             }
         }
@@ -140,8 +156,8 @@ fun DefaultPreview() {
         MyApp(
             favoriteSongs = dummyFavorites,
             addToFavorites = {},
-            isFavorite = { false }
+            isFavorite = { false },
+            playSong = {}
         )
     }
 }
-
