@@ -34,27 +34,31 @@ fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Выберите действие", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+            Text("Enter choice", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+
+            val buttonModifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp) // Установим одинаковую высоту для всех кнопок
 
             Button(
                 onClick = { onSelectMode(Mode.SIGN_IN) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = buttonModifier
             ) {
                 Text("Sign In")
             }
 
             Button(
                 onClick = { onSelectMode(Mode.SIGN_UP) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = buttonModifier
             ) {
                 Text("Sign Up")
             }
 
             Button(
                 onClick = onClose,
-                modifier = Modifier.fillMaxSize()
+                modifier = buttonModifier
             ) {
-                Text("Закрыть")
+                Text("Close")
             }
         }
     }
@@ -69,7 +73,7 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f)
+            .fillMaxHeight(0.4f) // Одинаковая высота для окна входа и регистрации
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
@@ -78,19 +82,19 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Вход", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+            Text("Authorization", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
 
             TextField(
                 value = login,
                 onValueChange = { login = it },
-                label = { Text("Логин") },
+                label = { Text("Login") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Пароль") },
+                label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -102,10 +106,10 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextButton(onClick = onBack) {
-                    Text("Назад")
+                    Text("Back")
                 }
                 Button(onClick = { /* Логика входа */ }) {
-                    Text("Войти")
+                    Text("Sing in")
                 }
             }
         }
@@ -122,7 +126,7 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.6f)
+            .fillMaxHeight(0.5f)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
@@ -131,26 +135,26 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Регистрация", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+            Text("Registration", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
 
             TextField(
                 value = userName,
                 onValueChange = { userName = it },
-                label = { Text("Имя") },
+                label = { Text("First name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             TextField(
                 value = login,
                 onValueChange = { login = it },
-                label = { Text("Логин") },
+                label = { Text("Login") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Пароль") },
+                label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -162,10 +166,10 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextButton(onClick = onBack) {
-                    Text("Назад")
+                    Text("Back")
                 }
                 Button(onClick = { /* Логика регистрации */ }) {
-                    Text("Зарегистрироваться")
+                    Text("Sing up", fontSize = 14.sp) // Уменьшаем шрифт для текста на кнопке
                 }
             }
         }
