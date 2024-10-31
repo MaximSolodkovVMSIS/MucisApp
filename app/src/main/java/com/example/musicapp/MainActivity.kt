@@ -7,12 +7,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.window.Dialog
 import com.example.musicapp.ui.theme.MusicAppTheme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -63,7 +65,6 @@ class MainActivity : ComponentActivity() {
             val type = object : TypeToken<List<SerializableMusicFile>>() {}.type
             val serializableList: List<SerializableMusicFile> = gson.fromJson(json, type)
 
-            // Преобразуем SerializableMusicFile обратно в MusicFile
             val musicFiles = serializableList.map { MusicFile(it.title, it.artist, Uri.parse(it.uriString)) }
 
             favoriteSongs.clear()
@@ -72,7 +73,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun playSong(uri: Uri) {
-        mediaPlayer?.release() // Освобождаем предыдущий MediaPlayer, если он есть
+        mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
             setDataSource(this@MainActivity, uri)
             prepare()
@@ -82,7 +83,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer?.release() // Освобождаем ресурсы MediaPlayer
+        mediaPlayer?.release()
     }
 }
 
@@ -91,16 +92,17 @@ fun MyApp(
     favoriteSongs: List<MusicFile>,
     addToFavorites: (MusicFile) -> Unit,
     isFavorite: (MusicFile) -> Boolean,
-    playSong: (Uri) -> Unit // Передаем функцию воспроизведения
+    playSong: (Uri) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showRegistration by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Music App") },
                 actions = {
-                    IconButton(onClick = { /* Логика для модального окна */ }) {
+                    IconButton(onClick = { showRegistration = true }) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "Account")
                     }
                 }
@@ -114,9 +116,14 @@ fun MyApp(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
                 0 -> SearchScreen(addToFavorites = addToFavorites)
-                1 -> MyMusicScreen(favoriteSongs, playSong) // Передаем функцию воспроизведения
+                1 -> MyMusicScreen(favoriteSongs, playSong)
                 2 -> PlayerScreen()
             }
+        }
+    }
+    if (showRegistration) {
+        Dialog(onDismissRequest = { showRegistration = false }) {
+            AuthenticationScreen(onDismiss = { showRegistration = false })
         }
     }
 }

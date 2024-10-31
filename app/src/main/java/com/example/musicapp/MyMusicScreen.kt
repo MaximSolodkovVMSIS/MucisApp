@@ -26,8 +26,6 @@ fun MyMusicScreen(favoriteSongs: List<MusicFile>, playSong: (Uri) -> Unit) {
             LazyColumn {
                 itemsIndexed(favoriteSongs) { index, song ->
                     SongItem(song = song, playSong = playSong)
-
-                    // Divider на всю ширину между элементами
                     if (index < favoriteSongs.size - 1) {
                         Divider(
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
@@ -54,21 +52,21 @@ fun SongItem(song: MusicFile, playSong: (Uri) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { playSong(song.uri) }
-            .padding(vertical = 8.dp, horizontal = 16.dp) // Можно увеличить отступы для более четкого отображения
-            .height(56.dp) // Задаем фиксированную высоту для каждого элемента
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .height(56.dp)
     ) {
         Text(
             text = song.title,
             style = MaterialTheme.typography.h6.copy(fontSize = 16.sp),
-            maxLines = 1, // Ограничение на одну строку
-            overflow = TextOverflow.Ellipsis, // Добавление многоточия, если текст слишком длинный
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp)
         )
         Text(
             text = song.artist ?: "Неизвестно",
             style = MaterialTheme.typography.body2.copy(fontSize = 12.sp),
-            maxLines = 1, // Ограничение на одну строку
-            overflow = TextOverflow.Ellipsis, // Добавление многоточия, если текст слишком длинный
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth()
         )
     }

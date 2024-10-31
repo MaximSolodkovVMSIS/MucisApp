@@ -119,14 +119,12 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     }
 }
 
-
 fun formatTime(milliseconds: Int): String {
     val minutes = (milliseconds / 1000) / 60
     val seconds = (milliseconds / 1000) % 60
     return "%d:%02d".format(minutes, seconds)
 }
 
-// Диалог для отображения информации о файле
 @Composable
 fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () -> Unit) {
     var title by remember { mutableStateOf(file.title) }
