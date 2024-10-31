@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun AuthenticationScreen(onDismiss: () -> Unit) {
@@ -38,7 +39,7 @@ fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
 
             val buttonModifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp) // Установим одинаковую высоту для всех кнопок
+                .height(48.dp)
 
             Button(
                 onClick = { onSelectMode(Mode.SIGN_IN) },
@@ -64,7 +65,27 @@ fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
     }
 }
 
-// Экран входа
+fun validateName(name: String): String? {
+    val nameRegex = Regex("^[a-zA-Z0-9_]{2,}$")
+    return if (!name.matches(nameRegex)) {
+        "Имя должено содержать не менее 2 символов, только буквы латинского алфавита, цифры или '_'."
+    } else null
+}
+
+fun validateLogin(login: String): String? {
+    val loginRegex = Regex("^[a-zA-Z0-9_]{2,}$")
+    return if (!login.matches(loginRegex)) {
+        "Логин должен содержать не менее 2 символов, только буквы латинского алфавита, цифры или '_'."
+    } else null
+}
+
+fun validatePassword(password: String): String? {
+    val passwordRegex = Regex("^[a-zA-Z0-9_]{8,}$")
+    return if (!password.matches(passwordRegex)) {
+        "Пароль должен содержать не менее 8 символов, только буквы латинского алфавита, цифры или '_'."
+    } else null
+}
+
 @Composable
 fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     var login by remember { mutableStateOf("") }
@@ -73,7 +94,7 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.4f) // Одинаковая высота для окна входа и регистрации
+            .fillMaxHeight(0.4f)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
@@ -116,12 +137,15 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     }
 }
 
-// Экран регистрации
 @Composable
 fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     var userName by remember { mutableStateOf("") }
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var loginError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var showErrors by remember { mutableStateOf(false) }  // Флаг для показа ошибок
 
     Surface(
         modifier = Modifier
@@ -139,25 +163,55 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
 
             TextField(
                 value = userName,
-                onValueChange = { userName = it },
+                onValueChange = {
+                    userName = it
+                    if (showErrors) nameError = validateName(it)
+                },
                 label = { Text("First name") },
                 modifier = Modifier.fillMaxWidth()
             )
+            if (showErrors && nameError != null) {
+                Text(
+                    text = nameError!!,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.body2
+                )
+            }
 
             TextField(
                 value = login,
-                onValueChange = { login = it },
+                onValueChange = {
+                    login = it
+                    if (showErrors) loginError = validateLogin(it)
+                },
                 label = { Text("Login") },
                 modifier = Modifier.fillMaxWidth()
             )
+            if (showErrors && loginError != null) {
+                Text(
+                    text = loginError!!,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.body2
+                )
+            }
 
             TextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    if (showErrors) passwordError = validatePassword(it)
+                },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation()
             )
+            if (showErrors && passwordError != null) {
+                Text(
+                    text = passwordError!!,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.body2
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -168,13 +222,24 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
                 TextButton(onClick = onBack) {
                     Text("Back")
                 }
-                Button(onClick = { /* Логика регистрации */ }) {
-                    Text("Sing up", fontSize = 14.sp) // Уменьшаем шрифт для текста на кнопке
+                Button(
+                    onClick = {
+                        nameError = validateName(userName)
+                        loginError = validateLogin(login)
+                        passwordError = validatePassword(password)
+                        showErrors = true
+                        if (nameError == null && loginError == null && passwordError == null) {
+                            // Логика успешной регистрации
+                        }
+                    }
+                ) {
+                    Text("Sign up", fontSize = 14.sp)
                 }
             }
         }
     }
 }
+
 
 enum class Mode {
     SIGN_IN, SIGN_UP
