@@ -43,22 +43,14 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     }
 
     LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                permissionLauncher.launch(Manifest.permission.READ_MEDIA_AUDIO)
-            } else {
-                permissionGranted = true
-            }
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            Manifest.permission.READ_MEDIA_AUDIO
+        else
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(permission)
         } else {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            } else {
-                permissionGranted = true
-            }
+            permissionGranted = true
         }
     }
 
@@ -68,38 +60,65 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
         if (permissionGranted) {
             if (musicFiles.isNotEmpty()) {
-                Text(text = "Music files found:", modifier = Modifier.fillMaxWidth())
-                musicFiles.forEach { file ->
-                    Text(
-                        text = file.title,
+                Text(
+                    text = "Найденные файлы:",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.padding(8.dp)
+                )
+                musicFiles.forEachIndexed { index, file ->
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                selectedFile = file  // при нажатии на файл отображаем диалог
-                            }
-                            .padding(8.dp)
-                    )
+                            .padding(vertical = 4.dp)
+                            .clickable { selectedFile = file },
+                        elevation = 4.dp,
+                        backgroundColor = MaterialTheme.colors.surface
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = file.title,
+                                style = MaterialTheme.typography.subtitle1
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = file.artist ?: "Неизвестный исполнитель",
+                                style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                    if (index < musicFiles.size - 1) {
+                        Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f))
+                    }
                 }
             } else {
-                Text(text = "No MP3 files found", modifier = Modifier.fillMaxWidth())
+                Text(
+                    text = "Музыкальные файлы не найдены",
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    style = MaterialTheme.typography.body1
+                )
             }
-            Spacer(modifier = Modifier.height(16.dp))
         } else {
-            Text(text = "Permission not granted", modifier = Modifier.fillMaxWidth())
+            Text(
+                text = "Нет доступа к файлам",
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                style = MaterialTheme.typography.body1
+            )
         }
     }
 
-    // Диалог с информацией о файле
     selectedFile?.let { file ->
-        FileInfoDialog(file, onAdd = {
-            addToFavorites(it) // Добавляем в избранное
-            selectedFile = null
-        }, onDismiss = { selectedFile = null })
+        FileInfoDialog(
+            file = file,
+            onAdd = { addToFavorites(it); selectedFile = null },
+            onDismiss = { selectedFile = null }
+        )
     }
 }
+
 
 fun formatTime(milliseconds: Int): String {
     val minutes = (milliseconds / 1000) / 60
