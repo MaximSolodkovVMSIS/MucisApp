@@ -66,27 +66,6 @@ fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
     }
 }
 
-fun validateName(name: String): String? {
-    val nameRegex = Regex("^[a-zA-Z0-9_]{2,}$")
-    return if (!name.matches(nameRegex)) {
-        "Имя должено содержать не менее 2 символов, только буквы латинского алфавита, цифры или '_'."
-    } else null
-}
-
-fun validateLogin(login: String): String? {
-    val loginRegex = Regex("^[a-zA-Z0-9_]{2,}$")
-    return if (!login.matches(loginRegex)) {
-        "Логин должен содержать не менее 2 символов, только буквы латинского алфавита, цифры или '_'."
-    } else null
-}
-
-fun validatePassword(password: String): String? {
-    val passwordRegex = Regex("^[a-zA-Z0-9_]{8,}$")
-    return if (!password.matches(passwordRegex)) {
-        "Пароль должен содержать не менее 8 символов, только буквы латинского алфавита, цифры или '_'."
-    } else null
-}
-
 @Composable
 fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     val auth = remember { FirebaseAuth.getInstance() }
@@ -111,7 +90,7 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
             TextField(
                 value = login,
                 onValueChange = { login = it },
-                label = { Text("Login") },
+                label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -160,7 +139,6 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
 
 @Composable
 fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) {
-    var userName by remember { mutableStateOf("") }
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -168,7 +146,7 @@ fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f)
+            .fillMaxHeight(0.4f)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
@@ -180,16 +158,9 @@ fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) 
             Text("Registration", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
 
             TextField(
-                value = userName,
-                onValueChange = { userName = it },
-                label = { Text("First name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            TextField(
                 value = login,
                 onValueChange = { login = it },
-                label = { Text("Login") },
+                label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -215,11 +186,10 @@ fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) 
                     Text("Back")
                 }
                 Button(onClick = {
-                    if (userName.isNotBlank() && login.isNotBlank() && password.isNotBlank()) {
+                    if (login.isNotBlank() && password.isNotBlank()) {
                         auth.createUserWithEmailAndPassword(login, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    // Успешная регистрация
                                     onDismiss()
                                 } else {
                                     errorMessage = task.exception?.localizedMessage ?: "Ошибка регистрации"
