@@ -12,6 +12,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+
+@Composable
+fun AccountScreen(onDismiss: () -> Unit) {
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    if (currentUser != null) {
+        ProfileScreen(user = currentUser, onLogout = {
+            auth.signOut()
+            onDismiss()
+        }, onBack = onDismiss)
+    } else {
+        AuthenticationScreen(onDismiss = onDismiss)
+    }
+}
+
+@Composable
+fun ProfileScreen(user: FirebaseUser, onLogout: () -> Unit, onBack: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.27f)
+            .padding(24.dp),
+        shape = MaterialTheme.shapes.medium,
+        elevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text("Profile", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+            Text("Email: ${user.email}", style = MaterialTheme.typography.body1)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onBack) {
+                    Text("Back")
+                }
+                Button(onClick = onLogout) {
+                    Text("Logout")
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun AuthenticationScreen(onDismiss: () -> Unit) {
@@ -19,7 +66,7 @@ fun AuthenticationScreen(onDismiss: () -> Unit) {
 
     when (selectedMode) {
         Mode.SIGN_IN -> SignInScreen(onDismiss = onDismiss, onBack = { selectedMode = null })
-        Mode.SIGN_UP -> SignUpScreen(auth = FirebaseAuth.getInstance(), onDismiss = onDismiss, onBack = { selectedMode = null }) // Передача auth
+        Mode.SIGN_UP -> SignUpScreen(auth = FirebaseAuth.getInstance(), onDismiss = onDismiss, onBack = { selectedMode = null })
         null -> ModeSelectionScreen(onSelectMode = { selectedMode = it }, onClose = onDismiss)
     }
 }

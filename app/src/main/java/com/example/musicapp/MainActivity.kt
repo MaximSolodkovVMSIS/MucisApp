@@ -31,7 +31,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Log.d("MusicApp", "Initializing Firebase")
         FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
         Log.d("MusicApp", "Firebase initialized")
@@ -131,7 +130,7 @@ fun MyApp(
     }
     if (showRegistration) {
         Dialog(onDismissRequest = { showRegistration = false }) {
-            AuthenticationScreen(onDismiss = { showRegistration = false })
+            AccountScreen(onDismiss = { showRegistration = false })
         }
     }
 }
