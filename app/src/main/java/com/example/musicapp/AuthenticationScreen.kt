@@ -9,6 +9,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun AuthenticationScreen(onDismiss: () -> Unit) {
@@ -16,7 +17,7 @@ fun AuthenticationScreen(onDismiss: () -> Unit) {
 
     when (selectedMode) {
         Mode.SIGN_IN -> SignInScreen(onDismiss = onDismiss, onBack = { selectedMode = null })
-        Mode.SIGN_UP -> SignUpScreen(onDismiss = onDismiss, onBack = { selectedMode = null })
+        Mode.SIGN_UP -> SignUpScreen(auth = FirebaseAuth.getInstance(), onDismiss = onDismiss, onBack = { selectedMode = null }) // Передача auth
         null -> ModeSelectionScreen(onSelectMode = { selectedMode = it }, onClose = onDismiss)
     }
 }
@@ -88,8 +89,10 @@ fun validatePassword(password: String): String? {
 
 @Composable
 fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
+    val auth = remember { FirebaseAuth.getInstance() }
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Surface(
         modifier = Modifier
@@ -120,6 +123,10 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
                 visualTransformation = PasswordVisualTransformation()
             )
 
+            if (errorMessage != null) {
+                Text(text = errorMessage!!, color = Color.Red, style = MaterialTheme.typography.body2)
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -129,23 +136,34 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
                 TextButton(onClick = onBack) {
                     Text("Back")
                 }
-                Button(onClick = { /* Логика входа */ }) {
-                    Text("Sing in")
+                Button(onClick = {
+                    if (login.isNotBlank() && password.isNotBlank()) {
+                        auth.signInWithEmailAndPassword(login, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    onDismiss()
+                                } else {
+                                    errorMessage = task.exception?.localizedMessage ?: "Ошибка входа"
+                                }
+                            }
+                    } else {
+                        errorMessage = "Заполните все поля"
+                    }
+                }) {
+                    Text("Sign in")
                 }
             }
         }
     }
 }
 
+
 @Composable
-fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
+fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) {
     var userName by remember { mutableStateOf("") }
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var loginError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-    var showErrors by remember { mutableStateOf(false) }  // Флаг для показа ошибок
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Surface(
         modifier = Modifier
@@ -163,54 +181,28 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
 
             TextField(
                 value = userName,
-                onValueChange = {
-                    userName = it
-                    if (showErrors) nameError = validateName(it)
-                },
+                onValueChange = { userName = it },
                 label = { Text("First name") },
                 modifier = Modifier.fillMaxWidth()
             )
-            if (showErrors && nameError != null) {
-                Text(
-                    text = nameError!!,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.body2
-                )
-            }
 
             TextField(
                 value = login,
-                onValueChange = {
-                    login = it
-                    if (showErrors) loginError = validateLogin(it)
-                },
+                onValueChange = { login = it },
                 label = { Text("Login") },
                 modifier = Modifier.fillMaxWidth()
             )
-            if (showErrors && loginError != null) {
-                Text(
-                    text = loginError!!,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.body2
-                )
-            }
 
             TextField(
                 value = password,
-                onValueChange = {
-                    password = it
-                    if (showErrors) passwordError = validatePassword(it)
-                },
+                onValueChange = { password = it },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation()
             )
-            if (showErrors && passwordError != null) {
-                Text(
-                    text = passwordError!!,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.body2
-                )
+
+            if (errorMessage != null) {
+                Text(text = errorMessage!!, color = Color.Red, style = MaterialTheme.typography.body2)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -222,18 +214,22 @@ fun SignUpScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
                 TextButton(onClick = onBack) {
                     Text("Back")
                 }
-                Button(
-                    onClick = {
-                        nameError = validateName(userName)
-                        loginError = validateLogin(login)
-                        passwordError = validatePassword(password)
-                        showErrors = true
-                        if (nameError == null && loginError == null && passwordError == null) {
-                            // Логика успешной регистрации
-                        }
+                Button(onClick = {
+                    if (userName.isNotBlank() && login.isNotBlank() && password.isNotBlank()) {
+                        auth.createUserWithEmailAndPassword(login, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    // Успешная регистрация
+                                    onDismiss()
+                                } else {
+                                    errorMessage = task.exception?.localizedMessage ?: "Ошибка регистрации"
+                                }
+                            }
+                    } else {
+                        errorMessage = "Заполните все поля"
                     }
-                ) {
-                    Text("Sign up", fontSize = 14.sp)
+                }) {
+                    Text("Sign up")
                 }
             }
         }

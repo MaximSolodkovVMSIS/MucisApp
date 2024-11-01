@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }
 
 android {
@@ -29,6 +30,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -63,14 +65,25 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.gson)
+
+    // Firebase libraries
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
+
+    // Media and ExoPlayer
     implementation(libs.exoplayer)
     implementation(libs.androidx.storage)
+
+    // Testing libraries
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Debugging
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
 }
+
+apply(plugin = "com.google.gms.google-services")

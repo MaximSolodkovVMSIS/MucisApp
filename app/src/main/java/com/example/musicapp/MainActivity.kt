@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -16,19 +17,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.window.Dialog
 import com.example.musicapp.ui.theme.MusicAppTheme
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 class MainActivity : ComponentActivity() {
-
     private val favoriteSongs = mutableStateListOf<MusicFile>()
     private val gson = Gson()
     private var mediaPlayer: MediaPlayer? = null
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        loadFavorites()
 
+        Log.d("MusicApp", "Initializing Firebase")
+        FirebaseApp.initializeApp(this)
+        auth = FirebaseAuth.getInstance()
+        Log.d("MusicApp", "Firebase initialized")
+
+        loadFavorites()
         setContent {
             MusicAppTheme {
                 MyApp(favoriteSongs, ::addToFavorites, ::isFavorite, ::playSong)
