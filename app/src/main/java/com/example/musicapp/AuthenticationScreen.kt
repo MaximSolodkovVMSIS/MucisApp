@@ -1,6 +1,8 @@
 package com.example.musicapp
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -72,6 +74,7 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
@@ -81,55 +84,68 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("Authorization", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
-
-            TextField(
-                value = login,
-                onValueChange = { login = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation()
-            )
-
-            if (errorMessage != null) {
-                Text(text = errorMessage!!, color = Color.Red, style = MaterialTheme.typography.body2)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                TextButton(onClick = onBack) {
-                    Text("Back")
+                Text("Authorization", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+
+                TextField(
+                    value = login,
+                    onValueChange = { login = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation()
+                )
+
+                if (errorMessage != null) {
+                    Text(text = errorMessage!!, color = Color.Red, style = MaterialTheme.typography.body2)
                 }
-                Button(onClick = {
-                    if (login.isNotBlank() && password.isNotBlank()) {
-                        auth.signInWithEmailAndPassword(login, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    onDismiss()
-                                } else {
-                                    errorMessage = task.exception?.localizedMessage ?: "Ошибка входа"
-                                }
-                            }
-                    } else {
-                        errorMessage = "Заполните все поля"
+
+                if (isLoading) {
+                    CircularProgressIndicator()
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = onBack) {
+                        Text("Back")
                     }
-                }) {
-                    Text("Sign in")
+                    Button(onClick = {
+                        if (login.isNotBlank() && password.isNotBlank()) {
+                            isLoading = true
+                            auth.signInWithEmailAndPassword(login, password)
+                                .addOnCompleteListener { task ->
+                                    isLoading = false
+                                    if (task.isSuccessful) {
+                                        onDismiss()
+                                    } else {
+                                        errorMessage = task.exception?.localizedMessage ?: "Ошибка входа"
+                                    }
+                                }
+                        } else {
+                            errorMessage = "Заполните все поля"
+                        }
+                    }) {
+                        Text("Sign in")
+                    }
                 }
             }
         }
@@ -151,61 +167,71 @@ fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) 
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("Registration", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
-
-            TextField(
-                value = login,
-                onValueChange = { login = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation()
-            )
-
-            if (errorMessage != null) {
-                Text(text = errorMessage!!, color = Color.Red, style = MaterialTheme.typography.body2)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                TextButton(onClick = onBack) {
-                    Text("Back")
+                Text("Registration", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
+
+                TextField(
+                    value = login,
+                    onValueChange = { login = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation()
+                )
+
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.body2
+                    )
                 }
-                Button(onClick = {
-                    if (login.isNotBlank() && password.isNotBlank()) {
-                        auth.createUserWithEmailAndPassword(login, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    onDismiss()
-                                } else {
-                                    errorMessage = task.exception?.localizedMessage ?: "Ошибка регистрации"
-                                }
-                            }
-                    } else {
-                        errorMessage = "Заполните все поля"
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = onBack) {
+                        Text("Back")
                     }
-                }) {
-                    Text("Sign up")
+                    Button(onClick = {
+                        if (login.isNotBlank() && password.isNotBlank()) {
+                            auth.createUserWithEmailAndPassword(login, password)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        onDismiss()
+                                    } else {
+                                        errorMessage = task.exception?.localizedMessage ?: "Ошибка регистрации"
+                                    }
+                                }
+                        } else {
+                            errorMessage = "Заполните все поля"
+                        }
+                    }) {
+                        Text("Sign up")
+                    }
                 }
             }
         }
     }
 }
-
 
 enum class Mode {
     SIGN_IN, SIGN_UP
