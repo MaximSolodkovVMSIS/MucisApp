@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         loadFavorites()
         setContent {
             MusicAppTheme {
-                MyApp(favoriteSongs, ::addToFavorites, ::isFavorite, ::playSong)
+                MyApp(favoriteSongs, ::addToFavorites, ::playSong)
             }
         }
     }
@@ -98,7 +98,6 @@ class MainActivity : ComponentActivity() {
 fun MyApp(
     favoriteSongs: List<MusicFile>,
     addToFavorites: (MusicFile) -> Unit,
-    isFavorite: (MusicFile) -> Boolean,
     playSong: (Uri) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -170,7 +169,6 @@ fun DefaultPreview() {
         MyApp(
             favoriteSongs = dummyFavorites,
             addToFavorites = {},
-            isFavorite = { false },
             playSong = {}
         )
     }
