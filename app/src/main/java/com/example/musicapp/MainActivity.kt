@@ -50,10 +50,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun isFavorite(musicFile: MusicFile): Boolean {
-        return favoriteSongs.contains(musicFile)
-    }
-
     private fun saveFavorites() {
         val sharedPreferences = getSharedPreferences("music_app_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
