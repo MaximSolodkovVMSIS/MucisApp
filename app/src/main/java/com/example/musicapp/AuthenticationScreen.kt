@@ -1,5 +1,6 @@
 package com.example.musicapp
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import androidx.compose.ui.platform.LocalConfiguration
 
 @Composable
 fun AccountScreen(onDismiss: () -> Unit) {
@@ -30,10 +32,13 @@ fun AccountScreen(onDismiss: () -> Unit) {
 
 @Composable
 fun ProfileScreen(user: FirebaseUser, onLogout: () -> Unit, onBack: () -> Unit) {
+    val configuration = LocalConfiguration.current
+    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.5f else 0.27f
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.27f)
+            .fillMaxHeight(heightFraction)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
@@ -73,16 +78,21 @@ fun AuthenticationScreen(onDismiss: () -> Unit) {
 
 @Composable
 fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
+    val configuration = LocalConfiguration.current
+    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.9f else 0.4f
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.4f)
+            .fillMaxHeight(heightFraction)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text("Enter choice", style = MaterialTheme.typography.h6.copy(fontSize = 20.sp))
@@ -119,6 +129,8 @@ fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
 fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     val auth = remember { FirebaseAuth.getInstance() }
     var login by remember { mutableStateOf("") }
+    val configuration = LocalConfiguration.current
+    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.9f else 0.4f
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -126,7 +138,7 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.4f)
+            .fillMaxHeight(heightFraction)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
@@ -202,6 +214,8 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
 
 @Composable
 fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) {
+    val configuration = LocalConfiguration.current
+    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.87f else 0.4f
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -209,7 +223,7 @@ fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.4f)
+            .fillMaxHeight(heightFraction)
             .padding(24.dp),
         shape = MaterialTheme.shapes.medium,
         elevation = 8.dp
