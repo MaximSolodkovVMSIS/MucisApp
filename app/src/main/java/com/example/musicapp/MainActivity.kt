@@ -37,7 +37,16 @@ class MainActivity : ComponentActivity() {
         loadFavorites()
         setContent {
             MusicAppTheme {
-                MyApp(favoriteSongs, ::addToFavorites, ::playSong, ::removeFromFavorites)
+                MyApp(
+                    favoriteSongs,
+                    ::addToFavorites,
+                    ::playSong,
+                    ::pauseSong,
+                    ::removeFromFavorites,
+                    getCurrentPosition = { getCurrentPosition() },
+                    getDuration = { getDuration() },
+                    mediaPlayer = mediaPlayer
+                )
             }
         }
     }
@@ -74,18 +83,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
+
+    fun getDuration(): Int = mediaPlayer?.duration ?: 0
+
+    private fun playSong(uri: Uri) {
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(this@MainActivity, uri)
+                prepare()
+                start()
+            }
+        } else {
+            mediaPlayer?.start()
+        }
+    }
+
+    private fun pauseSong() {
+        mediaPlayer?.pause()
+    }
+
     private fun removeFromFavorites(musicFile: MusicFile) {
         favoriteSongs.remove(musicFile)
         saveFavorites()
-    }
-
-    private fun playSong(uri: Uri) {
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setDataSource(this@MainActivity, uri)
-            prepare()
-            start()
-        }
     }
 
     override fun onDestroy() {
@@ -99,10 +119,16 @@ fun MyApp(
     favoriteSongs: List<MusicFile>,
     addToFavorites: (MusicFile) -> Unit,
     playSong: (Uri) -> Unit,
-    removeFromFavorites: (MusicFile) -> Unit
+    pauseSong: () -> Unit,
+    removeFromFavorites: (MusicFile) -> Unit,
+    getCurrentPosition: () -> Int,
+    getDuration: () -> Int,
+    mediaPlayer: MediaPlayer?
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var currentSong by remember { mutableStateOf<MusicFile?>(null) }
 
     Scaffold(
         topBar = {
@@ -123,8 +149,38 @@ fun MyApp(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
                 0 -> SearchScreen(addToFavorites = addToFavorites)
-                1 -> MyMusicScreen(favoriteSongs, playSong, removeFromFavorites)
-                2 -> PlayerScreen()
+                1 -> MyMusicScreen(
+                    favoriteSongs,
+                    playSong = { uri ->
+                        currentSong = favoriteSongs.find { it.uri == uri }
+                        isPlaying = true
+                        playSong(uri)
+                    },
+                    onRemoveSong = removeFromFavorites
+                )
+                2 -> PlayerScreen(
+                    isPlaying = isPlaying,
+                    currentSong = currentSong,
+                    onPlayPause = {
+                        if (isPlaying) {
+                            pauseSong()
+                        } else {
+                            currentSong?.uri?.let { playSong(it) }
+                        }
+                        isPlaying = !isPlaying
+                    },
+                    onNext = {
+                        // Добавьте логику для перехода к следующей песне
+                    },
+                    onPrevious = {
+                        // Добавьте логику для перехода к предыдущей песне
+                    },
+                    getCurrentPosition = { getCurrentPosition() },
+                    getDuration = { getDuration() },
+                    onSeekTo = { newPosition ->
+                        mediaPlayer?.seekTo(newPosition) // Move the media player to the new position
+                    }
+                )
             }
         }
     }
@@ -134,6 +190,7 @@ fun MyApp(
         }
     }
 }
+
 
 @Composable
 fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {

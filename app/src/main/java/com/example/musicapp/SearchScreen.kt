@@ -119,7 +119,7 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     }
 }
 
-fun formatTime(milliseconds: Int): String {
+private fun formatTime(milliseconds: Int): String {
     val minutes = (milliseconds / 1000) / 60
     val seconds = (milliseconds / 1000) % 60
     return "%d:%02d".format(minutes, seconds)
