@@ -84,7 +84,7 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = file.artist ?: "Неизвестный исполнитель",
+                                text = file.artist,
                                 style = MaterialTheme.typography.body2,
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
                             )
@@ -128,7 +128,7 @@ fun formatTime(milliseconds: Int): String {
 @Composable
 fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () -> Unit) {
     var title by remember { mutableStateOf(file.title) }
-    var artist by remember { mutableStateOf(file.artist ?: "Неизвестно") }
+    var artist by remember { mutableStateOf(file.artist) }
     var isPlaying by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val mediaPlayer = remember { MediaPlayer.create(context, file.uri) }
@@ -178,7 +178,6 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Проигрыватель
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -197,7 +196,6 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
                         )
                     }
 
-                    // Полоса прогресса
                     Slider(
                         value = currentProgress.toFloat(),
                         onValueChange = {
@@ -259,7 +257,6 @@ suspend fun getMusicFiles(context: Context): List<MusicFile> {
                 val contentUri = Uri.withAppendedPath(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id.toString()
                 )
-                // Обратите внимание на порядок аргументов:
                 musicFiles.add(MusicFile(title, artist, contentUri))
             }
         }

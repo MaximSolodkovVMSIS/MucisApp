@@ -39,8 +39,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import kotlinx.coroutines.launch
 
-
-
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun MyMusicScreen(
@@ -63,7 +61,6 @@ fun MyMusicScreen(
                             playSong(song.uri)
                         },
                         onSwipeToDelete = {
-                            // Удаляем песню из списка
                             songs = songs.filter { it.uri != song.uri }.toMutableList()
                             onRemoveSong(song)
                         }
@@ -94,7 +91,7 @@ fun SongItem(
     onSwipeToDelete: () -> Unit
 ) {
     val offsetX = remember { Animatable(0f) }
-    val maxSwipeDistance = -250f // Максимальное расстояние для сдвига
+    val maxSwipeDistance = -250f
     val coroutineScope = rememberCoroutineScope()
 
     val borderModifier = if (isSelected) {
@@ -110,7 +107,6 @@ fun SongItem(
             .then(borderModifier)
             .background(Color.Red)
     ) {
-        // Icon for deletion
         Icon(
             imageVector = Icons.Default.Delete,
             contentDescription = "Delete Icon",
@@ -119,7 +115,6 @@ fun SongItem(
                 .align(Alignment.CenterEnd)
                 .padding(end = 16.dp)
         )
-
         Column(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
@@ -127,11 +122,9 @@ fun SongItem(
                     detectHorizontalDragGestures(
                         onDragEnd = {
                             coroutineScope.launch {
-                                // Проверяем, достигли ли мы максимального расстояния
                                 if (offsetX.value <= maxSwipeDistance) {
-                                    onSwipeToDelete() // Удаляем элемент
+                                    onSwipeToDelete()
                                 } else {
-                                    // Возвращаем элемент в исходное состояние
                                     offsetX.animateTo(0f, animationSpec = tween(300))
                                 }
                             }
@@ -139,7 +132,6 @@ fun SongItem(
                     ) { change, dragAmount ->
                         change.consume()
                         coroutineScope.launch {
-                            // Ограничиваем сдвиг, не позволяя двигаться дальше maxSwipeDistance
                             offsetX.snapTo((offsetX.value + dragAmount).coerceIn(maxSwipeDistance, 0f))
                         }
                     }
@@ -157,7 +149,7 @@ fun SongItem(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp)
             )
             Text(
-                text = song.artist ?: "Неизвестно",
+                text = song.artist,
                 style = MaterialTheme.typography.body2.copy(fontSize = 12.sp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
