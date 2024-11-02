@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         loadFavorites()
         setContent {
             MusicAppTheme {
-                MyApp(favoriteSongs, ::addToFavorites, ::playSong)
+                MyApp(favoriteSongs, ::addToFavorites, ::playSong, ::removeFromFavorites)
             }
         }
     }
@@ -75,6 +75,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun removeFromFavorites(musicFile: MusicFile) {
+        favoriteSongs.remove(musicFile)
+        saveFavorites()
+    }
+
     private fun playSong(uri: Uri) {
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
@@ -94,7 +99,8 @@ class MainActivity : ComponentActivity() {
 fun MyApp(
     favoriteSongs: List<MusicFile>,
     addToFavorites: (MusicFile) -> Unit,
-    playSong: (Uri) -> Unit
+    playSong: (Uri) -> Unit,
+    removeFromFavorites: (MusicFile) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -118,7 +124,7 @@ fun MyApp(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
                 0 -> SearchScreen(addToFavorites = addToFavorites)
-                1 -> MyMusicScreen(favoriteSongs, playSong)
+                1 -> MyMusicScreen(favoriteSongs, playSong, removeFromFavorites)
                 2 -> PlayerScreen()
             }
         }
@@ -150,22 +156,6 @@ fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
             selected = selectedTab == 2,
             onClick = { onTabSelected(2) },
             label = { Text("Player") }
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    val dummyFavorites = listOf(
-        MusicFile("Song 1", "Artist 1", Uri.parse("uri1")),
-        MusicFile("Song 2", "Artist 2", Uri.parse("uri2"))
-    )
-    MusicAppTheme {
-        MyApp(
-            favoriteSongs = dummyFavorites,
-            addToFavorites = {},
-            playSong = {}
         )
     }
 }
