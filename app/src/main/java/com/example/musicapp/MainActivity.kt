@@ -47,7 +47,6 @@ class MainActivity : ComponentActivity() {
                     ::removeFromFavorites,
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
-                    mediaPlayer = mediaPlayer
                 )
             }
         }
@@ -90,13 +89,14 @@ class MainActivity : ComponentActivity() {
     private fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
     private fun playSong(uri: Uri) {
-        currentSong = favoriteSongs.find { it.uri == uri }
-        if (mediaPlayer == null) {
+        if (currentSong?.uri != uri) {
+            mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(this@MainActivity, uri)
                 prepare()
                 start()
             }
+            currentSong = favoriteSongs.find { it.uri == uri }
         } else {
             mediaPlayer?.start()
         }
@@ -131,7 +131,6 @@ fun MyApp(
     removeFromFavorites: (MusicFile) -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
-    mediaPlayer: MediaPlayer?
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
