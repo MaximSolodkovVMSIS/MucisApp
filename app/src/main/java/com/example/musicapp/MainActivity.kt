@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private var currentSong: MusicFile? by mutableStateOf<MusicFile?>(null)
     private var currentSongIndex by mutableIntStateOf(-1)
+    private var isPlaying by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +43,7 @@ class MainActivity : ComponentActivity() {
                 MyApp(
                     favoriteSongs = favoriteSongs,
                     currentSong = currentSong,
+                    isPlaying,
                     ::addToFavorites,
                     ::playSong,
                     ::pauseSong,
@@ -104,7 +106,6 @@ class MainActivity : ComponentActivity() {
             if (getCurrentPosition() > 3000) {
                 playSong(favoriteSongs[currentSongIndex].uri)
             } else {
-                // Иначе переходим к предыдущей песне
                 currentSongIndex = if (currentSongIndex - 1 >= 0) {
                     currentSongIndex - 1
                 } else {
@@ -122,6 +123,7 @@ class MainActivity : ComponentActivity() {
             prepare()
             start()
         }
+        isPlaying = true
         currentSong = favoriteSongs.find { it.uri == uri }
         currentSongIndex = favoriteSongs.indexOf(currentSong)
     }
@@ -132,6 +134,7 @@ class MainActivity : ComponentActivity() {
 
     private fun pauseSong() {
         mediaPlayer?.pause()
+        isPlaying = false
     }
 
     private fun removeFromFavorites(musicFile: MusicFile) {
@@ -149,6 +152,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp(
     favoriteSongs: List<MusicFile>,
     currentSong: MusicFile?,
+    isPlaying: Boolean,
     addToFavorites: (MusicFile) -> Unit,
     playSong: (Uri) -> Unit,
     pauseSong: () -> Unit,
@@ -161,7 +165,6 @@ fun MyApp(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
-    var isPlaying by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -185,10 +188,7 @@ fun MyApp(
                 1 -> MyMusicScreen(
                     favoriteSongs,
                     currentSong = currentSong,
-                    playSong = { uri ->
-                        isPlaying = true
-                        playSong(uri)
-                    },
+                    playSong = playSong,
                     onRemoveSong = removeFromFavorites
                 )
                 2 -> PlayerScreen(
@@ -200,7 +200,6 @@ fun MyApp(
                         } else {
                             currentSong?.uri?.let { playSong(it) }
                         }
-                        isPlaying = !isPlaying
                     },
                     onNext = playNext,
                     onPrevious = playPrevious,
@@ -217,7 +216,6 @@ fun MyApp(
         }
     }
 }
-
 
 @Composable
 fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {

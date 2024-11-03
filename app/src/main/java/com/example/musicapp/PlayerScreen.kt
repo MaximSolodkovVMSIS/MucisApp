@@ -33,24 +33,35 @@ fun PlayerScreen(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+            .padding(16.dp)
     ) {
         if (currentSong == null) {
-            Text(text = "Музыка не воспроизводится", style = MaterialTheme.typography.h6)
+            Text(
+                text = "Музыка не воспроизводится",
+                style = MaterialTheme.typography.h6,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
             ) {
                 Text(text = currentSong.title, style = MaterialTheme.typography.h6)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "Исполнитель: ${currentSong.artist}")
-                Spacer(modifier = Modifier.height(16.dp))
+            }
 
+            Spacer(modifier = Modifier.weight(1f))
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Slider(
                     value = position.toFloat(),
                     onValueChange = { newPosition ->
@@ -72,24 +83,28 @@ fun PlayerScreen(
                     Text(text = formatTime(position))
                     Text(text = formatTime(duration))
                 }
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onPrevious) {
-                        Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
-                    }
-                    IconButton(onClick = onPlayPause) {
-                        Icon(
-                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play"
-                        )
-                    }
-                    IconButton(onClick = onNext) {
-                        Icon(Icons.Filled.SkipNext, contentDescription = "Next")
-                    }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onPrevious) {
+                    Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
+                }
+                IconButton(onClick = onPlayPause) {
+                    Icon(
+                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play"
+                    )
+                }
+                IconButton(onClick = onNext) {
+                    Icon(Icons.Filled.SkipNext, contentDescription = "Next")
                 }
             }
         }
