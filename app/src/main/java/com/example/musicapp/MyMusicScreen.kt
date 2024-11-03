@@ -43,25 +43,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun MyMusicScreen(
     favoriteSongs: List<MusicFile>,
+    currentSong: MusicFile?,
     playSong: (Uri) -> Unit,
     onRemoveSong: (MusicFile) -> Unit
 ) {
-    var selectedSongUri by remember { mutableStateOf<Uri?>(null) }
-    var songs by remember { mutableStateOf(favoriteSongs.toMutableList()) }
-
     Surface(modifier = Modifier.fillMaxSize()) {
-        if (songs.isNotEmpty()) {
+        if (favoriteSongs.isNotEmpty()) {
             LazyColumn {
-                items(songs, key = { it.uri }) { song ->
+                items(favoriteSongs, key = { it.uri }) { song ->
                     SongItem(
                         song = song,
-                        isSelected = song.uri == selectedSongUri,
+                        isSelected = song == currentSong,
                         onClick = {
-                            selectedSongUri = song.uri
                             playSong(song.uri)
                         },
                         onSwipeToDelete = {
-                            songs = songs.filter { it.uri != song.uri }.toMutableList()
                             onRemoveSong(song)
                         }
                     )

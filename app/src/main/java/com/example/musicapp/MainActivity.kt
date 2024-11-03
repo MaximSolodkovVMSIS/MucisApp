@@ -26,8 +26,8 @@ class MainActivity : ComponentActivity() {
     private val gson = Gson()
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var auth: FirebaseAuth
-    private var currentSong: MusicFile? by mutableStateOf(null)
-    private var currentSongIndex by mutableStateOf(-1)
+    private var currentSong: MusicFile? by mutableStateOf<MusicFile?>(null)
+    private var currentSongIndex by mutableIntStateOf(-1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
             MusicAppTheme {
                 MyApp(
                     favoriteSongs = favoriteSongs,
+                    currentSong = currentSong,
                     ::addToFavorites,
                     ::playSong,
                     ::pauseSong,
@@ -147,6 +148,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp(
     favoriteSongs: List<MusicFile>,
+    currentSong: MusicFile?,
     addToFavorites: (MusicFile) -> Unit,
     playSong: (Uri) -> Unit,
     pauseSong: () -> Unit,
@@ -160,7 +162,6 @@ fun MyApp(
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(false) }
-    var currentSong by remember { mutableStateOf<MusicFile?>(null) }
 
     Scaffold(
         topBar = {
@@ -183,8 +184,8 @@ fun MyApp(
                 0 -> SearchScreen(addToFavorites = addToFavorites)
                 1 -> MyMusicScreen(
                     favoriteSongs,
+                    currentSong = currentSong,
                     playSong = { uri ->
-                        currentSong = favoriteSongs.find { it.uri == uri }
                         isPlaying = true
                         playSong(uri)
                     },
