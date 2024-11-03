@@ -1,6 +1,7 @@
 package com.example.musicapp
 
 import androidx.compose.foundation.layout.*
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,14 +20,14 @@ fun PlayerScreen(
     onPrevious: () -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
-    onSeekTo: (Int) -> Unit // Новый параметр для перемотки
+    onSeekTo: (Int) -> Unit
 ) {
-    var position by remember { mutableStateOf(0) }
+    var position by remember { mutableIntStateOf(0) }
     val duration = getDuration()
+    var isSeeking by remember { mutableStateOf(false) }
 
-    // Обновление позиции при воспроизведении
-    LaunchedEffect(isPlaying) {
-        while (isPlaying) {
+    LaunchedEffect(isPlaying, isSeeking) {
+        while (isPlaying && !isSeeking) {
             position = getCurrentPosition()
             delay(1000)
         }
@@ -50,35 +51,29 @@ fun PlayerScreen(
                 Text(text = "Исполнитель: ${currentSong.artist}")
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Слайдер и отображение времени
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                Slider(
+                    value = position.toFloat(),
+                    onValueChange = { newPosition ->
+                        isSeeking = true
+                        position = newPosition.toInt()
+                    },
+                    onValueChangeFinished = {
+                        onSeekTo(position)
+                        isSeeking = false
+                    },
+                    valueRange = 0f..duration.toFloat(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Slider(
-                        value = position.toFloat(),
-                        onValueChange = { newPosition ->
-                            position = newPosition.toInt() // Обновление позиции в UI
-                        },
-                        onValueChangeFinished = {
-                            onSeekTo(position) // Перемотка трека после окончания изменения
-                        },
-                        valueRange = 0f..duration.toFloat(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(text = formatTime(position))
-                        Text(text = formatTime(duration))
-                    }
+                    Text(text = formatTime(position))
+                    Text(text = formatTime(duration))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
@@ -101,7 +96,6 @@ fun PlayerScreen(
     }
 }
 
-// Функция форматирования времени в мм:сс
 private fun formatTime(milliseconds: Int): String {
     val minutes = (milliseconds / 1000) / 60
     val seconds = (milliseconds / 1000) % 60

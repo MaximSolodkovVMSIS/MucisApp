@@ -26,6 +26,7 @@ class MainActivity : ComponentActivity() {
     private val gson = Gson()
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var auth: FirebaseAuth
+    private var currentSong: MusicFile? by mutableStateOf(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +39,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             MusicAppTheme {
                 MyApp(
-                    favoriteSongs,
+                    favoriteSongs = favoriteSongs,
                     ::addToFavorites,
                     ::playSong,
                     ::pauseSong,
+                    seekTo = ::seekTo,
                     ::removeFromFavorites,
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
@@ -83,11 +85,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
+    private fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
 
-    fun getDuration(): Int = mediaPlayer?.duration ?: 0
+    private fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
     private fun playSong(uri: Uri) {
+        currentSong = favoriteSongs.find { it.uri == uri }
         if (mediaPlayer == null) {
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(this@MainActivity, uri)
@@ -97,6 +100,10 @@ class MainActivity : ComponentActivity() {
         } else {
             mediaPlayer?.start()
         }
+    }
+
+    private fun seekTo(position: Int) {
+        mediaPlayer?.seekTo(position)
     }
 
     private fun pauseSong() {
@@ -120,6 +127,7 @@ fun MyApp(
     addToFavorites: (MusicFile) -> Unit,
     playSong: (Uri) -> Unit,
     pauseSong: () -> Unit,
+    seekTo: (Int) -> Unit,
     removeFromFavorites: (MusicFile) -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
@@ -170,16 +178,12 @@ fun MyApp(
                         isPlaying = !isPlaying
                     },
                     onNext = {
-                        // Добавьте логику для перехода к следующей песне
                     },
                     onPrevious = {
-                        // Добавьте логику для перехода к предыдущей песне
                     },
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
-                    onSeekTo = { newPosition ->
-                        mediaPlayer?.seekTo(newPosition) // Move the media player to the new position
-                    }
+                    onSeekTo = seekTo
                 )
             }
         }
