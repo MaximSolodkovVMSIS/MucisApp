@@ -8,8 +8,13 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+
+enum class RepeatMode {
+    NONE, ONE, ALL
+}
 
 @Composable
 fun PlayerScreen(
@@ -27,6 +32,7 @@ fun PlayerScreen(
     val duration = getDuration()
     var isSeeking by remember { mutableStateOf(false) }
     var isShuffleEnabled by remember { mutableStateOf(false) }
+    var repeatMode by remember { mutableStateOf(RepeatMode.NONE) }
 
     LaunchedEffect(isPlaying, isSeeking) {
         while (isPlaying && !isSeeking) {
@@ -96,6 +102,25 @@ fun PlayerScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(onClick = {
+                    repeatMode = when (repeatMode) {
+                        RepeatMode.NONE -> RepeatMode.ALL
+                        RepeatMode.ALL -> RepeatMode.ONE
+                        RepeatMode.ONE -> RepeatMode.NONE
+                    }
+                }) {
+                    Icon(
+                        imageVector = when (repeatMode) {
+                            RepeatMode.NONE -> Icons.Filled.Repeat // Обычное воспроизведение
+                            RepeatMode.ALL -> Icons.Filled.Repeat // Повтор всех треков
+                            RepeatMode.ONE -> Icons.Filled.RepeatOne // Повтор одного трека
+                        },
+                        contentDescription = "Repeat Mode",
+                        tint = if (repeatMode != RepeatMode.NONE) MaterialTheme.colors.primary else Color.Gray
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+
                 IconButton(onClick = onPrevious) {
                     Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
                 }
