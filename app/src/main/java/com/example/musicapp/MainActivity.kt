@@ -31,6 +31,9 @@ class MainActivity : ComponentActivity() {
     private var currentSongIndex by mutableIntStateOf(-1)
     private var isPlaying by mutableStateOf(false)
     private var isShuffleEnabled by mutableStateOf(false)
+    private var repeatMode by mutableStateOf(RepeatMode.NONE)
+    private var lastPlayedSongIndex = -1
+    private val previousSongIndices = mutableListOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +58,15 @@ class MainActivity : ComponentActivity() {
                     getDuration = { getDuration() },
                     playNext = { playNextSong() },
                     playPrevious = { playPreviousSong() },
-                    onShuffleToggle = { isShuffleEnabled = !isShuffleEnabled }
+                    onShuffleToggle = { isShuffleEnabled = !isShuffleEnabled },
+                    onRepeatToggle = {
+                        repeatMode = when (repeatMode) {
+                            RepeatMode.NONE -> RepeatMode.ALL
+                            RepeatMode.ALL -> RepeatMode.ONE
+                            RepeatMode.ONE -> RepeatMode.NONE
+                        }
+                    },
+                    repeatMode = repeatMode
                 )
             }
         }
@@ -97,47 +108,93 @@ class MainActivity : ComponentActivity() {
 
     private fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
-    private fun playNextSong() {
-        if (favoriteSongs.isNotEmpty()) {
-            currentSongIndex = if (isShuffleEnabled) {
-                var nextIndex: Int
-                do {
-                    nextIndex = Random.nextInt(favoriteSongs.size)
-                } while (nextIndex == currentSongIndex)
-                nextIndex
-            } else {
-                (currentSongIndex + 1) % favoriteSongs.size
-            }
-            playSong(favoriteSongs[currentSongIndex].uri)
-        }
-    }
-
-
-    private fun playPreviousSong() {
-        if (favoriteSongs.isNotEmpty()) {
-            if (getCurrentPosition() > 3000) {
-                playSong(favoriteSongs[currentSongIndex].uri)
-            } else {
-                currentSongIndex = if (currentSongIndex - 1 >= 0) {
-                    currentSongIndex - 1
-                } else {
-                    favoriteSongs.size - 1
-                }
-                playSong(favoriteSongs[currentSongIndex].uri)
-            }
-        }
-    }
-
     private fun playSong(uri: Uri) {
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
             setDataSource(this@MainActivity, uri)
             prepare()
             start()
+
+            setOnCompletionListener {
+                if (repeatMode == RepeatMode.ONE) {
+                    playSong(favoriteSongs[currentSongIndex].uri)
+                } else {
+                    playNextSong()
+                }
+            }
         }
         isPlaying = true
         currentSong = favoriteSongs.find { it.uri == uri }
+
+        // Обновляем индекс текущей песни
+        lastPlayedSongIndex = currentSongIndex
         currentSongIndex = favoriteSongs.indexOf(currentSong)
+
+        // Обновляем список предыдущих индексов
+        if (previousSongIndices.isEmpty() || previousSongIndices.last() != currentSongIndex) {
+            previousSongIndices.add(currentSongIndex)
+            // Ограничиваем размер списка до 30 индексов
+            if (previousSongIndices.size > 30) {
+                previousSongIndices.removeAt(0) // Удаляем самый старый индекс
+            }
+        }
+    }
+
+    private fun playNextSong() {
+        if (favoriteSongs.isNotEmpty()) {
+            when {
+                isShuffleEnabled -> {
+                    var nextIndex: Int
+                    do {
+                        nextIndex = Random.nextInt(favoriteSongs.size)
+                    } while (nextIndex == currentSongIndex)
+                    currentSongIndex = nextIndex
+                    playSong(favoriteSongs[currentSongIndex].uri)
+                }
+                currentSongIndex < favoriteSongs.size - 1 -> {
+                    currentSongIndex += 1
+                    playSong(favoriteSongs[currentSongIndex].uri)
+                }
+                repeatMode == RepeatMode.ALL -> {
+                    currentSongIndex = 0
+                    playSong(favoriteSongs[currentSongIndex].uri)
+                }
+            }
+        }
+    }
+
+    private fun playPreviousSong() {
+        if (favoriteSongs.isNotEmpty()) {
+            when {
+                isShuffleEnabled -> {
+                    // Проверяем, что есть как минимум два предыдущих индекса
+                    if (previousSongIndices.size > 1) {
+                        // Получаем предпоследний индекс
+                        currentSongIndex = previousSongIndices[previousSongIndices.size - 2]
+                        playSong(favoriteSongs[currentSongIndex].uri)
+                        // Удаляем последний индекс после возврата к предыдущему
+                        previousSongIndices.removeAt(previousSongIndices.size - 1)
+                    }
+                }
+                repeatMode == RepeatMode.ALL -> {
+                    if (currentSongIndex == 0) {
+                        currentSongIndex = favoriteSongs.size - 1
+                        playSong(favoriteSongs[currentSongIndex].uri)
+                    } else {
+                        currentSongIndex -= 1
+                        playSong(favoriteSongs[currentSongIndex].uri)
+                    }
+                }
+                repeatMode == RepeatMode.NONE -> {
+                    if (currentSongIndex == 0) {
+                        return
+                    } else {
+                        currentSongIndex -= 1
+                        playSong(favoriteSongs[currentSongIndex].uri)
+                    }
+                }
+            }
+        }
     }
 
     private fun seekTo(position: Int) {
@@ -174,7 +231,9 @@ fun MyApp(
     getDuration: () -> Int,
     playNext: () -> Unit,
     playPrevious: () -> Unit,
-    onShuffleToggle: () -> Unit
+    onShuffleToggle: () -> Unit,
+    onRepeatToggle: () -> Unit,
+    repeatMode: RepeatMode
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -219,7 +278,9 @@ fun MyApp(
                     onShuffleToggle = onShuffleToggle,
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
-                    onSeekTo = seekTo
+                    onSeekTo = seekTo,
+                    onRepeatToggle = onRepeatToggle,
+                    repeatMode = repeatMode
                 )
             }
         }

@@ -26,13 +26,14 @@ fun PlayerScreen(
     onShuffleToggle: () -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
-    onSeekTo: (Int) -> Unit
+    onSeekTo: (Int) -> Unit,
+    onRepeatToggle: () -> Unit,
+    repeatMode: RepeatMode
 ) {
     var position by remember { mutableIntStateOf(0) }
     val duration = getDuration()
     var isSeeking by remember { mutableStateOf(false) }
     var isShuffleEnabled by remember { mutableStateOf(false) }
-    var repeatMode by remember { mutableStateOf(RepeatMode.NONE) }
 
     LaunchedEffect(isPlaying, isSeeking) {
         while (isPlaying && !isSeeking) {
@@ -103,22 +104,19 @@ fun PlayerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
-                    repeatMode = when (repeatMode) {
-                        RepeatMode.NONE -> RepeatMode.ALL
-                        RepeatMode.ALL -> RepeatMode.ONE
-                        RepeatMode.ONE -> RepeatMode.NONE
-                    }
+                    onRepeatToggle()
                 }) {
                     Icon(
                         imageVector = when (repeatMode) {
-                            RepeatMode.NONE -> Icons.Filled.Repeat // Обычное воспроизведение
-                            RepeatMode.ALL -> Icons.Filled.Repeat // Повтор всех треков
-                            RepeatMode.ONE -> Icons.Filled.RepeatOne // Повтор одного трека
+                            RepeatMode.NONE -> Icons.Filled.Repeat
+                            RepeatMode.ALL -> Icons.Filled.Repeat
+                            RepeatMode.ONE -> Icons.Filled.RepeatOne
                         },
                         contentDescription = "Repeat Mode",
                         tint = if (repeatMode != RepeatMode.NONE) MaterialTheme.colors.primary else Color.Gray
                     )
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
 
                 IconButton(onClick = onPrevious) {
