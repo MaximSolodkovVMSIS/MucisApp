@@ -18,6 +18,7 @@ fun PlayerScreen(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onShuffleToggle: () -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
     onSeekTo: (Int) -> Unit
@@ -25,6 +26,7 @@ fun PlayerScreen(
     var position by remember { mutableIntStateOf(0) }
     val duration = getDuration()
     var isSeeking by remember { mutableStateOf(false) }
+    var isShuffleEnabled by remember { mutableStateOf(false) }
 
     LaunchedEffect(isPlaying, isSeeking) {
         while (isPlaying && !isSeeking) {
@@ -91,20 +93,35 @@ fun PlayerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onPrevious) {
                     Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = onPlayPause) {
                     Icon(
                         if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play"
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = onNext) {
                     Icon(Icons.Filled.SkipNext, contentDescription = "Next")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = {
+                        onShuffleToggle()
+                        isShuffleEnabled = !isShuffleEnabled
+                    }
+                ) {
+                    Icon(
+                        Icons.Filled.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (isShuffleEnabled) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+                    )
                 }
             }
         }

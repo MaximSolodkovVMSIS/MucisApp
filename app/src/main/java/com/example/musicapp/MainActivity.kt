@@ -20,6 +20,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     private val favoriteSongs = mutableStateListOf<MusicFile>()
@@ -29,6 +30,7 @@ class MainActivity : ComponentActivity() {
     private var currentSong: MusicFile? by mutableStateOf<MusicFile?>(null)
     private var currentSongIndex by mutableIntStateOf(-1)
     private var isPlaying by mutableStateOf(false)
+    private var isShuffleEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +54,8 @@ class MainActivity : ComponentActivity() {
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
                     playNext = { playNextSong() },
-                    playPrevious = { playPreviousSong() }
+                    playPrevious = { playPreviousSong() },
+                    onShuffleToggle = { isShuffleEnabled = !isShuffleEnabled }
                 )
             }
         }
@@ -96,10 +99,19 @@ class MainActivity : ComponentActivity() {
 
     private fun playNextSong() {
         if (favoriteSongs.isNotEmpty()) {
-            currentSongIndex = (currentSongIndex + 1) % favoriteSongs.size
+            currentSongIndex = if (isShuffleEnabled) {
+                var nextIndex: Int
+                do {
+                    nextIndex = Random.nextInt(favoriteSongs.size)
+                } while (nextIndex == currentSongIndex)
+                nextIndex
+            } else {
+                (currentSongIndex + 1) % favoriteSongs.size
+            }
             playSong(favoriteSongs[currentSongIndex].uri)
         }
     }
+
 
     private fun playPreviousSong() {
         if (favoriteSongs.isNotEmpty()) {
@@ -161,7 +173,8 @@ fun MyApp(
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
     playNext: () -> Unit,
-    playPrevious: () -> Unit
+    playPrevious: () -> Unit,
+    onShuffleToggle: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -203,6 +216,7 @@ fun MyApp(
                     },
                     onNext = playNext,
                     onPrevious = playPrevious,
+                    onShuffleToggle = onShuffleToggle,
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
                     onSeekTo = seekTo
