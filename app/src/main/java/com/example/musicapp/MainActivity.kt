@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var auth: FirebaseAuth
     private var currentSong: MusicFile? by mutableStateOf(null)
+    private var currentSongIndex by mutableStateOf(-1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +48,8 @@ class MainActivity : ComponentActivity() {
                     ::removeFromFavorites,
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
+                    playNext = { playNextSong() },
+                    playPrevious = { playPreviousSong() }
                 )
             }
         }
@@ -88,18 +91,38 @@ class MainActivity : ComponentActivity() {
 
     private fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
-    private fun playSong(uri: Uri) {
-        if (currentSong?.uri != uri) {
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(this@MainActivity, uri)
-                prepare()
-                start()
-            }
-            currentSong = favoriteSongs.find { it.uri == uri }
-        } else {
-            mediaPlayer?.start()
+    private fun playNextSong() {
+        if (favoriteSongs.isNotEmpty()) {
+            currentSongIndex = (currentSongIndex + 1) % favoriteSongs.size
+            playSong(favoriteSongs[currentSongIndex].uri)
         }
+    }
+
+    private fun playPreviousSong() {
+        if (favoriteSongs.isNotEmpty()) {
+            if (getCurrentPosition() > 3000) {
+                playSong(favoriteSongs[currentSongIndex].uri)
+            } else {
+                // Иначе переходим к предыдущей песне
+                currentSongIndex = if (currentSongIndex - 1 >= 0) {
+                    currentSongIndex - 1
+                } else {
+                    favoriteSongs.size - 1
+                }
+                playSong(favoriteSongs[currentSongIndex].uri)
+            }
+        }
+    }
+
+    private fun playSong(uri: Uri) {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(this@MainActivity, uri)
+            prepare()
+            start()
+        }
+        currentSong = favoriteSongs.find { it.uri == uri }
+        currentSongIndex = favoriteSongs.indexOf(currentSong)
     }
 
     private fun seekTo(position: Int) {
@@ -131,6 +154,8 @@ fun MyApp(
     removeFromFavorites: (MusicFile) -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
+    playNext: () -> Unit,
+    playPrevious: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -176,10 +201,8 @@ fun MyApp(
                         }
                         isPlaying = !isPlaying
                     },
-                    onNext = {
-                    },
-                    onPrevious = {
-                    },
+                    onNext = playNext,
+                    onPrevious = playPrevious,
                     getCurrentPosition = { getCurrentPosition() },
                     getDuration = { getDuration() },
                     onSeekTo = seekTo
