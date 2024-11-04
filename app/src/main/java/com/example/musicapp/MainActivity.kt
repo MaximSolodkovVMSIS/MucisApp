@@ -27,13 +27,12 @@ class MainActivity : ComponentActivity() {
     private val gson = Gson()
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var auth: FirebaseAuth
-    private var currentSong: MusicFile? by mutableStateOf<MusicFile?>(null)
+    private var currentSong: MusicFile? by mutableStateOf(null)
     private var currentSongIndex by mutableIntStateOf(-1)
     private var isPlaying by mutableStateOf(false)
     private var isShuffleEnabled by mutableStateOf(false)
     private var repeatMode by mutableStateOf(RepeatMode.NONE)
-    private var lastPlayedSongIndex = -1
-    private val previousSongIndices = mutableListOf<Int>()
+    private var shuffleStartIndex = -1 // Индекс песни, с которой началось случайное воспроизведение
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +57,10 @@ class MainActivity : ComponentActivity() {
                     getDuration = { getDuration() },
                     playNext = { playNextSong() },
                     playPrevious = { playPreviousSong() },
-                    onShuffleToggle = { isShuffleEnabled = !isShuffleEnabled },
+                    onShuffleToggle = {
+                        isShuffleEnabled = !isShuffleEnabled
+                        if (isShuffleEnabled) shuffleStartIndex = currentSongIndex
+                    },
                     onRepeatToggle = {
                         repeatMode = when (repeatMode) {
                             RepeatMode.NONE -> RepeatMode.ALL
@@ -109,35 +111,28 @@ class MainActivity : ComponentActivity() {
     private fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
     private fun playSong(uri: Uri) {
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setDataSource(this@MainActivity, uri)
-            prepare()
-            start()
+        if (mediaPlayer == null || currentSong?.uri != uri) {
+            mediaPlayer?.release()
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(this@MainActivity, uri)
+                prepare()
+                start()
 
-            setOnCompletionListener {
-                if (repeatMode == RepeatMode.ONE) {
-                    playSong(favoriteSongs[currentSongIndex].uri)
-                } else {
-                    playNextSong()
+                setOnCompletionListener {
+                    if (repeatMode == RepeatMode.ONE) {
+                        playSong(favoriteSongs[currentSongIndex].uri)
+                    } else {
+                        playNextSong()
+                    }
                 }
             }
+            currentSong = favoriteSongs.find { it.uri == uri }
+            currentSongIndex = favoriteSongs.indexOf(currentSong)
+
+        } else {
+            mediaPlayer?.start()
         }
         isPlaying = true
-        currentSong = favoriteSongs.find { it.uri == uri }
-
-        // Обновляем индекс текущей песни
-        lastPlayedSongIndex = currentSongIndex
-        currentSongIndex = favoriteSongs.indexOf(currentSong)
-
-        // Обновляем список предыдущих индексов
-        if (previousSongIndices.isEmpty() || previousSongIndices.last() != currentSongIndex) {
-            previousSongIndices.add(currentSongIndex)
-            // Ограничиваем размер списка до 30 индексов
-            if (previousSongIndices.size > 30) {
-                previousSongIndices.removeAt(0) // Удаляем самый старый индекс
-            }
-        }
     }
 
     private fun playNextSong() {
@@ -167,31 +162,18 @@ class MainActivity : ComponentActivity() {
         if (favoriteSongs.isNotEmpty()) {
             when {
                 isShuffleEnabled -> {
-                    // Проверяем, что есть как минимум два предыдущих индекса
-                    if (previousSongIndices.size > 1) {
-                        // Получаем предпоследний индекс
-                        currentSongIndex = previousSongIndices[previousSongIndices.size - 2]
+                    if (shuffleStartIndex != -1) {
+                        currentSongIndex = shuffleStartIndex
                         playSong(favoriteSongs[currentSongIndex].uri)
-                        // Удаляем последний индекс после возврата к предыдущему
-                        previousSongIndices.removeAt(previousSongIndices.size - 1)
                     }
+                }
+                currentSongIndex > 0 -> {
+                    currentSongIndex -= 1
+                    playSong(favoriteSongs[currentSongIndex].uri)
                 }
                 repeatMode == RepeatMode.ALL -> {
-                    if (currentSongIndex == 0) {
-                        currentSongIndex = favoriteSongs.size - 1
-                        playSong(favoriteSongs[currentSongIndex].uri)
-                    } else {
-                        currentSongIndex -= 1
-                        playSong(favoriteSongs[currentSongIndex].uri)
-                    }
-                }
-                repeatMode == RepeatMode.NONE -> {
-                    if (currentSongIndex == 0) {
-                        return
-                    } else {
-                        currentSongIndex -= 1
-                        playSong(favoriteSongs[currentSongIndex].uri)
-                    }
+                    currentSongIndex = favoriteSongs.size - 1
+                    playSong(favoriteSongs[currentSongIndex].uri)
                 }
             }
         }
@@ -216,6 +198,7 @@ class MainActivity : ComponentActivity() {
         mediaPlayer?.release()
     }
 }
+
 
 @Composable
 fun MyApp(
