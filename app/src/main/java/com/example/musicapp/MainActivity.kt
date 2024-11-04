@@ -75,11 +75,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun addToFavorites(musicFile: MusicFile) {
-        if (!favoriteSongs.contains(musicFile)) {
+        val existingFile = favoriteSongs.find { it.uri == musicFile.uri }
+        if (existingFile != null) {
+            val updatedFile = existingFile.copy(title = musicFile.title, artist = musicFile.artist)
+            favoriteSongs[favoriteSongs.indexOf(existingFile)] = updatedFile
+        } else {
             favoriteSongs.add(musicFile)
-            saveFavorites()
         }
+        saveFavorites()
     }
+
 
     private fun saveFavorites() {
         val sharedPreferences = getSharedPreferences("music_app_prefs", Context.MODE_PRIVATE)
