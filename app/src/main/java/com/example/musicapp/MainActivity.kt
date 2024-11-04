@@ -32,7 +32,9 @@ class MainActivity : ComponentActivity() {
     private var isPlaying by mutableStateOf(false)
     private var isShuffleEnabled by mutableStateOf(false)
     private var repeatMode by mutableStateOf(RepeatMode.NONE)
-    private var shuffleStartIndex = -1 // Индекс песни, с которой началось случайное воспроизведение
+    private var shuffleStartIndex = -1
+    private val queueSongs = mutableStateListOf<MusicFile>()
+    private var pausePosition: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,14 +89,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun onAddToQueue(musicFile: MusicFile) {
-        // Логика добавления в очередь
+        if (!queueSongs.contains(musicFile)) {
+            queueSongs.add(musicFile)
+        }
     }
 
     private fun saveFavorites() {
         val sharedPreferences = getSharedPreferences("music_app_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
 
-        val serializableList = favoriteSongs.map { SerializableMusicFile(it.title, it.artist, it.uri.toString()) }
+        val serializableList =
+            favoriteSongs.map { SerializableMusicFile(it.title, it.artist, it.uri.toString()) }
         val json = gson.toJson(serializableList)
         editor.putString("favorite_songs", json)
         editor.apply()
@@ -108,7 +113,8 @@ class MainActivity : ComponentActivity() {
             val type = object : TypeToken<List<SerializableMusicFile>>() {}.type
             val serializableList: List<SerializableMusicFile> = gson.fromJson(json, type)
 
-            val musicFiles = serializableList.map { MusicFile(it.title, it.artist, Uri.parse(it.uriString)) }
+            val musicFiles =
+                serializableList.map { MusicFile(it.title, it.artist, Uri.parse(it.uriString)) }
 
             favoriteSongs.clear()
             favoriteSongs.addAll(musicFiles)
@@ -120,8 +126,14 @@ class MainActivity : ComponentActivity() {
     private fun getDuration(): Int = mediaPlayer?.duration ?: 0
 
     private fun playSong(uri: Uri) {
-        if (mediaPlayer == null || currentSong?.uri != uri) {
+        if (mediaPlayer != null && currentSong?.uri == uri && pausePosition > 0) {
+            mediaPlayer?.seekTo(pausePosition)
+            mediaPlayer?.start()
+            pausePosition = 0
+        } else {
+            mediaPlayer?.stop()
             mediaPlayer?.release()
+
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(this@MainActivity, uri)
                 prepare()
@@ -129,23 +141,26 @@ class MainActivity : ComponentActivity() {
 
                 setOnCompletionListener {
                     if (repeatMode == RepeatMode.ONE) {
-                        playSong(favoriteSongs[currentSongIndex].uri)
+                        playSong(uri)
                     } else {
                         playNextSong()
                     }
                 }
             }
+
             currentSong = favoriteSongs.find { it.uri == uri }
             currentSongIndex = favoriteSongs.indexOf(currentSong)
-
-        } else {
-            mediaPlayer?.start()
         }
+
         isPlaying = true
     }
 
     private fun playNextSong() {
-        if (favoriteSongs.isNotEmpty()) {
+        if (queueSongs.isNotEmpty()) {
+            currentSong = queueSongs.removeAt(0)
+            currentSongIndex = favoriteSongs.indexOf(currentSong)
+            playSong(currentSong!!.uri)
+        } else if (favoriteSongs.isNotEmpty()) {
             when {
                 isShuffleEnabled -> {
                     var nextIndex: Int
@@ -155,10 +170,12 @@ class MainActivity : ComponentActivity() {
                     currentSongIndex = nextIndex
                     playSong(favoriteSongs[currentSongIndex].uri)
                 }
+
                 currentSongIndex < favoriteSongs.size - 1 -> {
                     currentSongIndex += 1
                     playSong(favoriteSongs[currentSongIndex].uri)
                 }
+
                 repeatMode == RepeatMode.ALL -> {
                     currentSongIndex = 0
                     playSong(favoriteSongs[currentSongIndex].uri)
@@ -176,10 +193,12 @@ class MainActivity : ComponentActivity() {
                         playSong(favoriteSongs[currentSongIndex].uri)
                     }
                 }
+
                 currentSongIndex > 0 -> {
                     currentSongIndex -= 1
                     playSong(favoriteSongs[currentSongIndex].uri)
                 }
+
                 repeatMode == RepeatMode.ALL -> {
                     currentSongIndex = favoriteSongs.size - 1
                     playSong(favoriteSongs[currentSongIndex].uri)
@@ -193,8 +212,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun pauseSong() {
-        mediaPlayer?.pause()
-        isPlaying = false
+        mediaPlayer?.let {
+            pausePosition = it.currentPosition
+            it.pause()
+            isPlaying = false
+        }
     }
 
     private fun removeFromFavorites(musicFile: MusicFile) {
@@ -256,8 +278,8 @@ fun MyApp(
                     playSong = playSong,
                     onRemoveSong = removeFromFavorites,
                     onAddToQueue = onAddToQueue
-
                 )
+
                 2 -> PlayerScreen(
                     isPlaying = isPlaying,
                     currentSong = currentSong,
