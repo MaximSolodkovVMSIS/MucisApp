@@ -68,7 +68,8 @@ class MainActivity : ComponentActivity() {
                             RepeatMode.ONE -> RepeatMode.NONE
                         }
                     },
-                    repeatMode = repeatMode
+                    repeatMode = repeatMode,
+                    onAddToQueue = { musicFile -> onAddToQueue(musicFile) }
                 )
             }
         }
@@ -85,6 +86,9 @@ class MainActivity : ComponentActivity() {
         saveFavorites()
     }
 
+    private fun onAddToQueue(musicFile: MusicFile) {
+        // Логика добавления в очередь
+    }
 
     private fun saveFavorites() {
         val sharedPreferences = getSharedPreferences("music_app_prefs", Context.MODE_PRIVATE)
@@ -215,6 +219,7 @@ fun MyApp(
     pauseSong: () -> Unit,
     seekTo: (Int) -> Unit,
     removeFromFavorites: (MusicFile) -> Unit,
+    onAddToQueue: (MusicFile) -> Unit,
     getCurrentPosition: () -> Int,
     getDuration: () -> Int,
     playNext: () -> Unit,
@@ -249,7 +254,9 @@ fun MyApp(
                     favoriteSongs,
                     currentSong = currentSong,
                     playSong = playSong,
-                    onRemoveSong = removeFromFavorites
+                    onRemoveSong = removeFromFavorites,
+                    onAddToQueue = onAddToQueue
+
                 )
                 2 -> PlayerScreen(
                     isPlaying = isPlaying,

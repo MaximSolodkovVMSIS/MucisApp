@@ -35,9 +35,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -45,7 +48,8 @@ fun MyMusicScreen(
     favoriteSongs: List<MusicFile>,
     currentSong: MusicFile?,
     playSong: (Uri) -> Unit,
-    onRemoveSong: (MusicFile) -> Unit
+    onRemoveSong: (MusicFile) -> Unit,
+    onAddToQueue: (MusicFile) -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
         if (favoriteSongs.isNotEmpty()) {
@@ -59,6 +63,9 @@ fun MyMusicScreen(
                         },
                         onSwipeToDelete = {
                             onRemoveSong(song)
+                        },
+                        onSwipeToAddToQueue = {
+                            onAddToQueue(song)
                         }
                     )
                     Divider(
@@ -79,16 +86,23 @@ fun MyMusicScreen(
     }
 }
 
+
 @Composable
 fun SongItem(
     song: MusicFile,
     isSelected: Boolean,
     onClick: () -> Unit,
-    onSwipeToDelete: () -> Unit
+    onSwipeToDelete: () -> Unit,
+    onSwipeToAddToQueue: () -> Unit
 ) {
     val offsetX = remember { Animatable(0f) }
-    val maxSwipeDistance = -250f
+    val maxSwipeDistance = 250f
     val coroutineScope = rememberCoroutineScope()
+
+    var backgroundColor by remember { mutableStateOf(Color.White) }
+
+    var showAddIcon by remember { mutableStateOf(false) }
+    var showDeleteIcon by remember { mutableStateOf(false) }
 
     val borderModifier = if (isSelected) {
         Modifier.border(2.dp, Color.Blue, RoundedCornerShape(4.dp))
@@ -101,16 +115,43 @@ fun SongItem(
             .fillMaxWidth()
             .height(60.dp)
             .then(borderModifier)
-            .background(Color.Red)
     ) {
-        Icon(
-            imageVector = Icons.Default.Delete,
-            contentDescription = "Delete Icon",
-            tint = Color.White,
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 16.dp)
+                .fillMaxHeight()
+                .width(with(LocalDensity.current) { abs(offsetX.value).toDp().coerceAtMost(maxSwipeDistance.dp) })
+                .background(
+                    when {
+                        offsetX.value >= maxSwipeDistance -> Color.Green
+                        offsetX.value <= -maxSwipeDistance -> Color.Red
+                        else -> Color.Transparent
+                    }
+                )
+                .align(if (offsetX.value >= 0) Alignment.CenterStart else Alignment.CenterEnd)
         )
+
+        if (showAddIcon) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add to Queue Icon",
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 16.dp)
+            )
+        }
+
+        if (showDeleteIcon) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete Icon",
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
@@ -118,22 +159,39 @@ fun SongItem(
                     detectHorizontalDragGestures(
                         onDragEnd = {
                             coroutineScope.launch {
-                                if (offsetX.value <= maxSwipeDistance) {
+                                if (offsetX.value >= maxSwipeDistance) {
+                                    onSwipeToAddToQueue()
+                                } else if (offsetX.value <= -maxSwipeDistance) {
                                     onSwipeToDelete()
-                                } else {
-                                    offsetX.animateTo(0f, animationSpec = tween(300))
                                 }
+                                showAddIcon = false
+                                showDeleteIcon = false
+                                offsetX.animateTo(0f, animationSpec = tween(300))
                             }
                         }
                     ) { change, dragAmount ->
                         change.consume()
                         coroutineScope.launch {
-                            offsetX.snapTo((offsetX.value + dragAmount).coerceIn(maxSwipeDistance, 0f))
+                            offsetX.snapTo((offsetX.value + dragAmount).coerceIn(-maxSwipeDistance, maxSwipeDistance))
+
+                            when {
+                                offsetX.value >= maxSwipeDistance -> {
+                                    showAddIcon = true
+                                    showDeleteIcon = false
+                                }
+                                offsetX.value <= -maxSwipeDistance -> {
+                                    showAddIcon = false
+                                    showDeleteIcon = true
+                                }
+                                else -> {
+                                    showAddIcon = false
+                                    showDeleteIcon = false
+                                }
+                            }
                         }
                     }
                 }
                 .fillMaxWidth()
-                .background(MaterialTheme.colors.surface)
                 .clickable { onClick() }
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
