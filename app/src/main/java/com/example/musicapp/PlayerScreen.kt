@@ -1,5 +1,6 @@
 package com.example.musicapp
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
@@ -11,6 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.ui.text.style.TextOverflow
 
 enum class RepeatMode {
     NONE, ONE, ALL
@@ -28,12 +35,14 @@ fun PlayerScreen(
     getDuration: () -> Int,
     onSeekTo: (Int) -> Unit,
     onRepeatToggle: () -> Unit,
-    repeatMode: RepeatMode
+    repeatMode: RepeatMode,
+    queueSongs: List<MusicFile>
 ) {
     var position by remember { mutableIntStateOf(0) }
     val duration = getDuration()
     var isSeeking by remember { mutableStateOf(false) }
     var isShuffleEnabled by remember { mutableStateOf(false) }
+    var isQueueDialogOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(isPlaying, isSeeking) {
         while (isPlaying && !isSeeking) {
@@ -103,6 +112,16 @@ fun PlayerScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(onClick = { isQueueDialogOpen = true }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                        contentDescription = "View Queue",
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 IconButton(onClick = {
                     onRepeatToggle()
                 }) {
@@ -148,8 +167,67 @@ fun PlayerScreen(
                 }
             }
         }
+
+        if (isQueueDialogOpen) {
+            Dialog(onDismissRequest = { isQueueDialogOpen = false }) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .border(2.dp, Color.Gray, RoundedCornerShape(8.dp)), // Добавляем границу и закругляем углы
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Очередь воспроизведения",
+                            style = MaterialTheme.typography.h6,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyColumn {
+                            items(queueSongs) { song ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(60.dp)
+                                        .padding(horizontal = 8.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                    ) {
+                                        Text(
+                                            text = song.title,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.subtitle1
+                                        )
+                                        Text(
+                                            text = "Исполнитель: ${song.artist}",
+                                            style = MaterialTheme.typography.caption,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { isQueueDialogOpen = false },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text("Закрыть")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+
 
 private fun formatTime(milliseconds: Int): String {
     val minutes = (milliseconds / 1000) / 60

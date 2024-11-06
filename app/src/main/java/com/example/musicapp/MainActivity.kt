@@ -71,7 +71,8 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     repeatMode = repeatMode,
-                    onAddToQueue = { musicFile -> onAddToQueue(musicFile) }
+                    onAddToQueue = { musicFile -> onAddToQueue(musicFile) },
+                    queueSongs = queueSongs
                 )
             }
         }
@@ -248,7 +249,8 @@ fun MyApp(
     playPrevious: () -> Unit,
     onShuffleToggle: () -> Unit,
     onRepeatToggle: () -> Unit,
-    repeatMode: RepeatMode
+    repeatMode: RepeatMode,
+    queueSongs: List<MusicFile>
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -297,7 +299,8 @@ fun MyApp(
                     getDuration = { getDuration() },
                     onSeekTo = seekTo,
                     onRepeatToggle = onRepeatToggle,
-                    repeatMode = repeatMode
+                    repeatMode = repeatMode,
+                    queueSongs = queueSongs
                 )
             }
         }
