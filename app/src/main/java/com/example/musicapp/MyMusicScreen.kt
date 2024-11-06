@@ -51,41 +51,62 @@ fun MyMusicScreen(
     onRemoveSong: (MusicFile) -> Unit,
     onAddToQueue: (MusicFile) -> Unit
 ) {
+    var snackbarMessage by remember { mutableStateOf<String?>(null) }
+    val snackbarCoroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Surface(modifier = Modifier.fillMaxSize()) {
-        if (favoriteSongs.isNotEmpty()) {
-            LazyColumn {
-                items(favoriteSongs, key = { it.uri }) { song ->
-                    SongItem(
-                        song = song,
-                        isSelected = song == currentSong,
-                        onClick = {
-                            playSong(song.uri)
-                        },
-                        onSwipeToDelete = {
-                            onRemoveSong(song)
-                        },
-                        onSwipeToAddToQueue = {
-                            onAddToQueue(song)
-                        }
-                    )
-                    Divider(
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
-                        thickness = 1.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (favoriteSongs.isNotEmpty()) {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(favoriteSongs, key = { it.uri }) { song ->
+                        SongItem(
+                            song = song,
+                            isSelected = song == currentSong,
+                            onClick = {
+                                playSong(song.uri)
+                            },
+                            onSwipeToDelete = {
+                                onRemoveSong(song)
+                                snackbarMessage = "Песня удалена"
+                            },
+                            onSwipeToAddToQueue = {
+                                onAddToQueue(song)
+                                snackbarMessage = "Песня добавлена в очередь"
+                            }
+                        )
+                        Divider(
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                            thickness = 1.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = "Нет добавленных песен",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                )
+            }
+
+            // Snackbar host for displaying messages
+            LaunchedEffect(snackbarMessage) {
+                snackbarMessage?.let {
+                    snackbarCoroutineScope.launch {
+                        snackbarHostState.showSnackbar(it)
+                    }
+                    snackbarMessage = null // Clear message after showing
                 }
             }
-        } else {
-            Text(
-                text = "Нет добавленных песен",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
     }
 }
-
 
 @Composable
 fun SongItem(
@@ -98,8 +119,6 @@ fun SongItem(
     val offsetX = remember { Animatable(0f) }
     val maxSwipeDistance = 250f
     val coroutineScope = rememberCoroutineScope()
-
-    var backgroundColor by remember { mutableStateOf(Color.White) }
 
     var showAddIcon by remember { mutableStateOf(false) }
     var showDeleteIcon by remember { mutableStateOf(false) }
