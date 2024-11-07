@@ -33,7 +33,13 @@ fun AccountScreen(onDismiss: () -> Unit) {
 @Composable
 fun ProfileScreen(user: FirebaseUser, onLogout: () -> Unit, onBack: () -> Unit) {
     val configuration = LocalConfiguration.current
-    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.5f else 0.27f
+    val isTablet = configuration.screenWidthDp >= 600
+    val heightFraction = when {
+        isTablet && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> 0.3f
+        isTablet -> 0.2f
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && !isTablet -> 0.9f
+        else -> 0.27f
+    }
 
     Surface(
         modifier = Modifier
@@ -79,7 +85,13 @@ fun AuthenticationScreen(onDismiss: () -> Unit) {
 @Composable
 fun ModeSelectionScreen(onSelectMode: (Mode) -> Unit, onClose: () -> Unit) {
     val configuration = LocalConfiguration.current
-    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.9f else 0.4f
+    val isTablet = configuration.screenWidthDp >= 600
+    val heightFraction = when {
+        isTablet && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> 0.45f
+        isTablet -> 0.3f
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && !isTablet -> 0.9f
+        else -> 0.4f
+    }
 
     Surface(
         modifier = Modifier
@@ -130,7 +142,13 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
     val auth = remember { FirebaseAuth.getInstance() }
     var login by remember { mutableStateOf("") }
     val configuration = LocalConfiguration.current
-    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.9f else 0.4f
+    val isTablet = configuration.screenWidthDp >= 600
+    val heightFraction = when {
+        isTablet && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> 0.5f
+        isTablet -> 0.3f
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && !isTablet -> 0.9f
+        else -> 0.4f
+    }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -215,7 +233,13 @@ fun SignInScreen(onDismiss: () -> Unit, onBack: () -> Unit) {
 @Composable
 fun SignUpScreen(auth: FirebaseAuth, onDismiss: () -> Unit, onBack: () -> Unit) {
     val configuration = LocalConfiguration.current
-    val heightFraction = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.87f else 0.4f
+    val isTablet = configuration.screenWidthDp >= 600
+    val heightFraction = when {
+        isTablet && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> 0.5f
+        isTablet -> 0.3f
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && !isTablet -> 0.87f
+        else -> 0.4f
+    }
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
