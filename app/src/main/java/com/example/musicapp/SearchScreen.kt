@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.launch
 
 @Composable
@@ -126,7 +127,11 @@ private fun formatTime(milliseconds: Int): String {
 }
 
 @Composable
-fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () -> Unit) {
+fun FileInfoDialog(
+    file: MusicFile,
+    onAdd: (MusicFile) -> Unit,
+    onDismiss: () -> Unit
+) {
     var title by remember { mutableStateOf(file.title) }
     var artist by remember { mutableStateOf(file.artist) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -135,6 +140,9 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
     var currentProgress by remember { mutableIntStateOf(0) }
     val duration = mediaPlayer.duration
     val coroutineScope = rememberCoroutineScope()
+
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
 
     LaunchedEffect(isPlaying) {
         if (isPlaying) {
@@ -149,7 +157,10 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            modifier = Modifier.size(width = 300.dp, height = 350.dp),
+            modifier = Modifier.size(
+                width = if (isTablet) 500.dp else 300.dp,
+                height = if (isTablet) 450.dp else 350.dp
+            ),
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colors.background,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -167,14 +178,16 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
                 TextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Название") }
+                    label = { Text("Название") },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextField(
                     value = artist,
                     onValueChange = { artist = it },
-                    label = { Text("Исполнитель") }
+                    label = { Text("Исполнитель") },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -206,8 +219,10 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
                         modifier = Modifier.weight(1f)
                     )
 
-                    Text(text = "${formatTime(currentProgress)}/${formatTime(duration)}",
-                        modifier = Modifier.padding(start = 8.dp))
+                    Text(
+                        text = "${formatTime(currentProgress)}/${formatTime(duration)}",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -222,14 +237,16 @@ fun FileInfoDialog(file: MusicFile, onAdd: (MusicFile) -> Unit, onDismiss: () ->
                     Button(onClick = {
                         mediaPlayer.release()
                         onAdd(file.copy(title = title, artist = artist))
+                        onDismiss()
                     }) {
-                        Text("Добавить")
+                        Text("Сохранить")
                     }
                 }
             }
         }
     }
 }
+
 
 suspend fun getMusicFiles(context: Context): List<MusicFile> {
     return withContext(Dispatchers.IO) {
