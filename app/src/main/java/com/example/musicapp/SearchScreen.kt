@@ -9,7 +9,6 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
@@ -23,9 +22,11 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import android.media.MediaPlayer
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.launch
@@ -36,6 +37,7 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     var permissionGranted by remember { mutableStateOf(false) }
     var musicFiles by remember { mutableStateOf(emptyList<MusicFile>()) }
     var selectedFile by remember { mutableStateOf<MusicFile?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -69,12 +71,32 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
                     style = MaterialTheme.typography.h6,
                     modifier = Modifier.padding(8.dp)
                 )
-                musicFiles.forEachIndexed { index, file ->
+                musicFiles.forEach { file ->
+                    var lastClickTime by remember { mutableLongStateOf(0L) }
+                    val doubleClickThreshold = 200L
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clickable { selectedFile = file },
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = {
+                                        val currentTime = System.currentTimeMillis()
+                                        if (currentTime - lastClickTime < doubleClickThreshold) {
+                                            addToFavorites(file)
+                                        } else {
+                                            coroutineScope.launch {
+                                                delay(doubleClickThreshold)
+                                                if (System.currentTimeMillis() - lastClickTime >= doubleClickThreshold) {
+                                                    selectedFile = file
+                                                }
+                                            }
+                                        }
+                                        lastClickTime = currentTime
+                                    }
+                                )
+                            },
                         elevation = 4.dp,
                         backgroundColor = MaterialTheme.colors.surface
                     ) {
@@ -91,23 +113,12 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
                             )
                         }
                     }
-                    if (index < musicFiles.size - 1) {
-                        Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f))
-                    }
                 }
             } else {
-                Text(
-                    text = "Музыкальные файлы не найдены",
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
-                    style = MaterialTheme.typography.body1
-                )
+                Text("Музыкальные файлы не найдены.")
             }
         } else {
-            Text(
-                text = "Нет доступа к файлам",
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                style = MaterialTheme.typography.body1
-            )
+            Text("Разрешение не предоставлено.")
         }
     }
 

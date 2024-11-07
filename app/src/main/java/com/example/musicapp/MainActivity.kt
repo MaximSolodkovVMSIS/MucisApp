@@ -242,7 +242,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 fun MyApp(
     favoriteSongs: List<MusicFile>,
