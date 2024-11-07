@@ -222,8 +222,19 @@ class MainActivity : ComponentActivity() {
 
     private fun removeFromFavorites(musicFile: MusicFile) {
         favoriteSongs.remove(musicFile)
+
+        queueSongs.removeAll { it.uri == musicFile.uri }
+
+        if (currentSong?.uri == musicFile.uri) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            currentSong = null
+            isPlaying = false
+        }
         saveFavorites()
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
