@@ -91,13 +91,13 @@ fun MyMusicScreen(
                 )
             }
 
-            // Snackbar host for displaying messages
             LaunchedEffect(snackbarMessage) {
                 snackbarMessage?.let {
                     snackbarCoroutineScope.launch {
+                        snackbarHostState.currentSnackbarData?.dismiss()
                         snackbarHostState.showSnackbar(it)
                     }
-                    snackbarMessage = null // Clear message after showing
+                    snackbarMessage = null
                 }
             }
             SnackbarHost(
