@@ -131,12 +131,6 @@ fun SearchScreen(addToFavorites: (MusicFile) -> Unit) {
     }
 }
 
-private fun formatTime(milliseconds: Int): String {
-    val minutes = (milliseconds / 1000) / 60
-    val seconds = (milliseconds / 1000) % 60
-    return "%d:%02d".format(minutes, seconds)
-}
-
 @Composable
 fun FileInfoDialog(
     file: MusicFile,
@@ -231,7 +225,7 @@ fun FileInfoDialog(
                     )
 
                     Text(
-                        text = "${formatTime(currentProgress)}/${formatTime(duration)}",
+                        text = "${NativeUtils.formatTimeJNI(currentProgress)}/${NativeUtils.formatTimeJNI(duration)}",
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
